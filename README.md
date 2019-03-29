@@ -9,7 +9,7 @@ None of them allows to get an input from a system command for example. This exte
 
 Usage example: 
 
-![Extension Demo](demo.gif)
+![Extension Demo](https://github.com/augustocdias/vscode-shell-command/raw/master/demo.gif)
 
 ```
 {
