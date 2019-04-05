@@ -10,15 +10,24 @@ export function activate(context: vscode.ExtensionContext) {
         if(!args.hasOwnProperty('command')) {
             vscode.window.showErrorMessage('Please specify the "command" property.');
         } else {
-            const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0].uri.fsPath;
-            const cwd = args.cwd || workspaceFolder;
+            const cwd = args.cwd ? resolveVariables(args.cwd!) : undefined;
+            if (args.env !== undefined) {
+                Object.keys(args.env!).forEach(element => {
+                    args.env![element] = resolveVariables(args.env![element]) || '';
+                });
+            }
             const options: process.ExecSyncOptionsWithStringEncoding = {
                 encoding: 'utf8',
                 cwd: cwd,
                 env: args.env
             };
             try {
-                const result = process.execSync(args.command, options);
+                const cmd = resolveVariables(args.command);
+                if (cmd === undefined) {
+                    vscode.window.showErrorMessage('Your command is bad formatted and variables could not be resolved');
+                    return;
+                }
+                const result = process.execSync(cmd!, options);
                 const inputOptions: vscode.QuickPickOptions = {
                     canPickMany: false,
                 };
@@ -30,8 +39,39 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     };
-
+    
     context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
+}
+
+function resolveVariables(str: string): string | undefined {
+    const expressionRegex = /\$\{(.*?)\}/gm;
+    const result = str.replace(expressionRegex, (match: string, value: string): string => {
+        const workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
+        if (workspaceRegex.test(value)) {
+            return value.replace(workspaceRegex, (_: string, index: string): string => {
+                const idx = Number.parseInt(index);
+                if(vscode.workspace.workspaceFolders !== undefined && vscode.workspace.workspaceFolders![idx]) {
+                    return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
+                } else {
+                    return '';
+                }
+            });
+        } else {
+            switch(value) {
+                case 'workspaceFolder':
+                    return vscode.workspace.workspaceFolders![0].uri.fsPath;
+                case 'workspaceFolderBasename':
+                    return vscode.workspace.workspaceFolders![0].name;
+                case 'file':
+                    if (vscode.window.activeTextEditor === null) {
+                        return '';
+                    }
+                    return vscode.window.activeTextEditor!.document.fileName;
+            }
+        }
+        return '';
+    });
+    return result === '' ? undefined : result;
 }
 
 interface ShellCommandOptions {

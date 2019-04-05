@@ -28,10 +28,13 @@ Usage example:
       "type": "command",
       "command": "shellCommand.execute",
       "args": {
-          "command": "ls",
-          "cwd": "/home/user/projects"
+          "command": "cat ${file}",
+          "cwd": "${workspaceFolder}"
           "env": {
-              "MY_ENV_VAR": "my env val"
+              "WORKSPACE": "${workspaceFolder[0]}",
+              "FILE": ${file},
+              "PROJECT": ${workspaceFolderBasename}
+
           }
       }
     }
@@ -44,4 +47,4 @@ Arguments for the extension:
 * cwd: the directory from within it will be executed
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 
-In the moment it doesn't support [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference), but it is on the works.
+In the moment it supports only `file`, `workspaceFolder` and `workspaceFolderBasename` [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
