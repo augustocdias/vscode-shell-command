@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
                 const inputOptions: vscode.QuickPickOptions = {
                     canPickMany: false,
                 };
-                const nonEmptyInput = result.split(os.EOL).filter((value: string) => value && value.trim().length > 0);
+                const nonEmptyInput = result.split(/\r\n|\r|\n/).filter((value: string) => value.trim() && value.trim().length > 0);
                 return vscode.window.showQuickPick(nonEmptyInput, inputOptions);
             } catch (error) {
                 console.error(error);
