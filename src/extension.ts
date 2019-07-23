@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as process from 'child_process';
-import * as os from 'os';
 
 export function activate(context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
