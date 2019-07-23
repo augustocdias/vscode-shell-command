@@ -3,35 +3,44 @@ import * as process from 'child_process';
 import * as os from 'os';
 
 export function activate(context: vscode.ExtensionContext) {
-
     const command = 'shellCommand.execute';
 
     const commandHandler = (args: ShellCommandOptions) => {
-        if(!args.hasOwnProperty('command')) {
+        if (!args.hasOwnProperty('command')) {
             vscode.window.showErrorMessage('Please specify the "command" property.');
         } else {
             const cwd = args.cwd ? resolveVariables(args.cwd!) : undefined;
             if (args.env !== undefined) {
-                Object.keys(args.env!).forEach(element => {
+                Object.keys(args.env!).forEach((element) => {
                     args.env![element] = resolveVariables(args.env![element]) || '';
                 });
             }
             const options: process.ExecSyncOptionsWithStringEncoding = {
                 encoding: 'utf8',
                 cwd: cwd,
-                env: args.env
+                env: args.env,
             };
             try {
+                const { useFirstResult } = args;
                 const cmd = resolveVariables(args.command);
                 if (cmd === undefined) {
-                    vscode.window.showErrorMessage('Your command is bad formatted and variables could not be resolved');
+                    vscode.window.showErrorMessage(
+                        'Your command is bad formatted and variables could not be resolved',
+                    );
                     return;
                 }
                 const result = process.execSync(cmd!, options);
                 const inputOptions: vscode.QuickPickOptions = {
                     canPickMany: false,
                 };
-                const nonEmptyInput = result.split(os.EOL).filter((value: string) => value && value.trim().length > 0);
+                const nonEmptyInput = result
+                    .split(os.EOL)
+                    .filter((value: string) => value && value.trim().length > 0);
+
+                if (useFirstResult) {
+                    return nonEmptyInput[0];
+                }
+
                 return vscode.window.showQuickPick(nonEmptyInput, inputOptions);
             } catch (error) {
                 console.error(error);
@@ -39,45 +48,55 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     };
-    
+
     context.subscriptions.push(vscode.commands.registerCommand(command, commandHandler));
 }
 
 function resolveVariables(str: string): string | undefined {
     const expressionRegex = /\$\{(.*?)\}/gm;
-    const result = str.replace(expressionRegex, (match: string, value: string): string => {
-        const workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
-        if (workspaceRegex.test(value)) {
-            return value.replace(workspaceRegex, (_: string, index: string): string => {
-                const idx = Number.parseInt(index);
-                if(vscode.workspace.workspaceFolders !== undefined && vscode.workspace.workspaceFolders![idx]) {
-                    return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
-                } else {
-                    return '';
+    const result = str.replace(
+        expressionRegex,
+        (match: string, value: string): string => {
+            const workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
+            if (workspaceRegex.test(value)) {
+                return value.replace(
+                    workspaceRegex,
+                    (_: string, index: string): string => {
+                        const idx = Number.parseInt(index);
+                        if (
+                            vscode.workspace.workspaceFolders !== undefined &&
+                            vscode.workspace.workspaceFolders![idx]
+                        ) {
+                            return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
+                        } else {
+                            return '';
+                        }
+                    },
+                );
+            } else {
+                switch (value) {
+                    case 'workspaceFolder':
+                        return vscode.workspace.workspaceFolders![0].uri.fsPath;
+                    case 'workspaceFolderBasename':
+                        return vscode.workspace.workspaceFolders![0].name;
+                    case 'file':
+                        if (vscode.window.activeTextEditor === null) {
+                            return '';
+                        }
+                        return vscode.window.activeTextEditor!.document.fileName;
                 }
-            });
-        } else {
-            switch(value) {
-                case 'workspaceFolder':
-                    return vscode.workspace.workspaceFolders![0].uri.fsPath;
-                case 'workspaceFolderBasename':
-                    return vscode.workspace.workspaceFolders![0].name;
-                case 'file':
-                    if (vscode.window.activeTextEditor === null) {
-                        return '';
-                    }
-                    return vscode.window.activeTextEditor!.document.fileName;
             }
-        }
-        return '';
-    });
+            return '';
+        },
+    );
     return result === '' ? undefined : result;
 }
 
 interface ShellCommandOptions {
     cwd: string | undefined;
     command: string;
-    env: { [s: string]: string; } | undefined;
+    env: { [s: string]: string } | undefined;
+    useFirstResult?: boolean;
 }
 
 // this method is called when your extension is deactivated
