@@ -4,6 +4,7 @@ import * as os from 'os';
 
 export function activate(context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
+    const endOfLineRegex = /\r\n|\r|\n/;
 
     const commandHandler = (args: ShellCommandOptions) => {
         if (!args.hasOwnProperty('command')) {
@@ -34,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
                     canPickMany: false,
                 };
                 const nonEmptyInput = result
-                    .split(os.EOL)
+                    .split(endOfLineRegex)
                     .filter((value: string) => value && value.trim().length > 0);
 
                 if (useFirstResult) {
