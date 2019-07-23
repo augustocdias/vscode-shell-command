@@ -46,5 +46,6 @@ Arguments for the extension:
 * command: the system command to be executed (must be in PATH)
 * cwd: the directory from within it will be executed
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
+* useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
 
 In the moment it supports only `file`, `workspaceFolder` and `workspaceFolderBasename` [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
