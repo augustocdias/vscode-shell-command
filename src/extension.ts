@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as process from 'child_process';
+import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
@@ -84,6 +85,11 @@ function resolveVariables(str: string): string | undefined {
                             return '';
                         }
                         return vscode.window.activeTextEditor!.document.fileName;
+                    case 'fileDirName':
+                        if (vscode.window.activeTextEditor === null) {
+                            return '';
+                        }
+                        return path.dirname(vscode.window.activeTextEditor!.document.uri.fsPath);
                 }
             }
             return '';
