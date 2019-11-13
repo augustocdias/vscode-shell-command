@@ -48,4 +48,4 @@ Arguments for the extension:
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
 
-In the moment it supports only `file`, `workspaceFolder` and `workspaceFolderBasename` [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
+In the moment it supports only `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename` [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
