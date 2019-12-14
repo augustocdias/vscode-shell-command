@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as process from 'child_process';
 import * as path from 'path';
+import { ShellCommandOptions } from "./lib/ShellCommandOptions";
 
 export function activate(context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
@@ -96,13 +97,6 @@ function resolveVariables(str: string): string | undefined {
         },
     );
     return result === '' ? undefined : result;
-}
-
-interface ShellCommandOptions {
-    cwd: string | undefined;
-    command: string;
-    env: { [s: string]: string } | undefined;
-    useFirstResult?: boolean;
 }
 
 // this method is called when your extension is deactivated
