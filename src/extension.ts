@@ -70,29 +70,30 @@ function resolveVariables(str: string): string | undefined {
                             vscode.workspace.workspaceFolders![idx]
                         ) {
                             return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
-                        } else {
-                            return '';
                         }
+                        
+                        return '';
                     },
                 );
-            } else {
-                switch (value) {
-                    case 'workspaceFolder':
-                        return vscode.workspace.workspaceFolders![0].uri.fsPath;
-                    case 'workspaceFolderBasename':
-                        return vscode.workspace.workspaceFolders![0].name;
-                    case 'file':
-                        if (vscode.window.activeTextEditor === null) {
-                            return '';
-                        }
-                        return vscode.window.activeTextEditor!.document.fileName;
-                    case 'fileDirName':
-                        if (vscode.window.activeTextEditor === null) {
-                            return '';
-                        }
-                        return path.dirname(vscode.window.activeTextEditor!.document.uri.fsPath);
-                }
             }
+
+            switch (value) {
+                case 'workspaceFolder':
+                    return vscode.workspace.workspaceFolders![0].uri.fsPath;
+                case 'workspaceFolderBasename':
+                    return vscode.workspace.workspaceFolders![0].name;
+                case 'file':
+                    if (vscode.window.activeTextEditor === null) {
+                        return '';
+                    }
+                    return vscode.window.activeTextEditor!.document.fileName;
+                case 'fileDirName':
+                    if (vscode.window.activeTextEditor === null) {
+                        return '';
+                    }
+                    return path.dirname(vscode.window.activeTextEditor!.document.uri.fsPath);
+            }
+            
             return '';
         },
     );
