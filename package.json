@@ -8,7 +8,7 @@
 		"url": "https://github.com/augustocdias/vscode-shell-command"
 	},
 	"engines": {
-		"vscode": "^1.32.0"
+		"vscode": "^1.37.0"
 	},
 	"categories": [
 		"Other"
@@ -36,14 +36,17 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"watch": "tsc -watch -p ./"
 	},
 	"devDependencies": {
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28",
-		"tslint": "^5.12.1",
-		"@types/node": "^10.12.21"
-	},
-	"dependencies": {}
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.37.0",
+		"glob": "^7.1.5",
+		"mocha": "^6.2.2",
+		"typescript": "^3.6.4",
+		"tslint": "^5.20.0",
+		"vscode-test": "^1.2.2"
+	}
 }
