@@ -61,6 +61,7 @@ export class CommandHandler
             encoding: 'utf8',
             cwd: this.args.cwd,
             env: this.args.env,
+            shell: vscode.env.shell
         };
         
         return subprocess.execSync(this.args.command!, options);
