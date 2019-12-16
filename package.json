@@ -2,7 +2,7 @@
 	"name": "tasks-shell-input",
 	"displayName": "Tasks Shell Input",
 	"description": "Use shell commands as input for your tasks",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"publisher": "augustocdias",
 	"repository": {
 		"url": "https://github.com/augustocdias/vscode-shell-command"
