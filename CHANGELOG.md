@@ -1,5 +1,8 @@
 # Change Log
 
+## [Unreleased]
+- Added `useSingleResult` option
+
 ## [0.3.0] - 2019-07-23
 
 - Added `useFirstResult` option
