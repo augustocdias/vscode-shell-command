@@ -4,4 +4,5 @@ export interface ShellCommandOptions
     command: string;
     env: { [s: string]: string } | undefined;
     useFirstResult?: boolean;
+    useSingleResult?: boolean;
 }

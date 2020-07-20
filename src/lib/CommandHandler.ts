@@ -41,7 +41,8 @@ export class CommandHandler
             command: command,
             cwd: cwd,
             env: env,
-            useFirstResult: args.useFirstResult
+            useFirstResult: args.useFirstResult,
+            useSingleResult: args.useSingleResult
         }
     }
 
@@ -49,10 +50,12 @@ export class CommandHandler
     {
         const result = this.runCommand()
         const nonEmptyInput = this.parseResult(result);
+        const useFirstResult = (this.args.useFirstResult
+            || (this.args.useSingleResult && nonEmptyInput.length === 1));
 
-        return (this.args.useFirstResult)
+        return (useFirstResult
             ? nonEmptyInput[0]
-            : this.quickPick(nonEmptyInput);
+            : this.quickPick(nonEmptyInput));
     }
 
     protected runCommand()
