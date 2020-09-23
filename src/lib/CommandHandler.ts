@@ -21,7 +21,7 @@ export class CommandHandler
         const resolver = new VariableResolver();
         const resolve = (arg: string) => resolver.resolve(arg);
 
-        const command = resolve(args.command)
+        const command = resolve(args.command);
         if (command === undefined) {
             throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
         }
@@ -35,7 +35,7 @@ export class CommandHandler
             }
         }
 
-        const cwd = (args.cwd) ? resolve(args.cwd!) : undefined;
+        const cwd = (args.cwd) ? resolve(args.cwd!) : vscode.workspace.workspaceFolders![0].uri.fsPath;
 
         this.args = {
             command: command,
@@ -43,12 +43,12 @@ export class CommandHandler
             env: env,
             useFirstResult: args.useFirstResult,
             useSingleResult: args.useSingleResult
-        }
+        };
     }
 
     handle()
     {
-        const result = this.runCommand()
+        const result = this.runCommand();
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult = (this.args.useFirstResult
             || (this.args.useSingleResult && nonEmptyInput.length === 1));
