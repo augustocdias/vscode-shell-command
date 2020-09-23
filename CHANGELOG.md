@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.1.0] - 2020-07-23
+- Setting current folder as default for working directory from command
+
 ## [1.0.0] - 2020-07-23
 - Added `useSingleResult` option
 
