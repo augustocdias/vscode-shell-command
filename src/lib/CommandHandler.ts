@@ -9,7 +9,9 @@ export class CommandHandler
     protected args: ShellCommandOptions;
     protected EOL: RegExp = /\r\n|\r|\n/;
     protected inputOptions: vscode.QuickPickOptions = {
-        canPickMany: false
+        canPickMany: false,
+        matchOnDescription: true,
+        matchOnDetail: true
     };
 
     constructor(args: ShellCommandOptions)
@@ -42,8 +44,13 @@ export class CommandHandler
             cwd: cwd,
             env: env,
             useFirstResult: args.useFirstResult,
-            useSingleResult: args.useSingleResult
+            useSingleResult: args.useSingleResult,
+            fieldSeparator: args.fieldSeparator
         };
+
+        if (args.description !== undefined) {
+            this.inputOptions.placeHolder = args.description;
+        }
     }
 
     handle()
@@ -54,7 +61,7 @@ export class CommandHandler
             || (this.args.useSingleResult && nonEmptyInput.length === 1));
 
         return (useFirstResult
-            ? nonEmptyInput[0]
+            ? nonEmptyInput[0].value
             : this.quickPick(nonEmptyInput));
     }
 
@@ -74,11 +81,20 @@ export class CommandHandler
     {
         return result
             .split(this.EOL)
-            .filter((value: string) => value && value.trim().length > 0);
+            .map((value: string) => {
+                const values = value.trim().split(this.args.fieldSeparator!, 4);
+                return {
+                    value: values[0],
+                    label: values[1] ?? value,
+                    description: values[2],
+                    detail: values[3]
+                };
+            })
+            .filter((item: any) => item.label && item.label.trim().length > 0);
     }
 
-    protected quickPick(input: string[])
+    protected quickPick(input: any[])
     {
-        return vscode.window.showQuickPick(input, this.inputOptions);
+        return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => selection?.value);
     }
 }
