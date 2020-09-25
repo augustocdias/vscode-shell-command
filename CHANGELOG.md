@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.0.0] - 2020-09-25
+- Added `fieldSeparator` and `description` options
+
 ## [1.1.0] - 2020-07-23
 - Setting current folder as default for working directory from command
 
