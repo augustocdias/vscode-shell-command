@@ -9,7 +9,7 @@ None of them allows to get an input from a system command for example. This exte
 
 Usage example: 
 
-![Extension Demo](demo.gif)
+![Extension Demo](https://github.com/augustocdias/vscode-shell-command/raw/master/demo.gif)
 
 ```
 {
@@ -79,7 +79,7 @@ Next example shows a process picker very similar to the built-in `${command:pick
 
 VSCode renders it like this:
 
-![Process Picker](process-picker.png)
+![Process Picker](https://github.com/augustocdias/vscode-shell-command/raw/master/process-picker.png)
 
 Arguments for the extension:
 * command: the system command to be executed (must be in PATH)
