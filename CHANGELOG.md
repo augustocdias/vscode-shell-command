@@ -1,6 +1,6 @@
 # Change Log
 
-## [2.0.0] - 2020-09-25
+## [1.2.0] - 2021-02-04
 - Added `fieldSeparator` and `description` options
 
 ## [1.1.0] - 2020-07-23
