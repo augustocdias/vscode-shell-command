@@ -5,6 +5,8 @@ export class VariableResolver
 {
     protected expressionRegex: RegExp = /\$\{(.*?)\}/gm;
     protected workspaceRegex: RegExp = /workspaceFolder\[(\d+)\]/gm;
+    protected configVarRegex: RegExp = /config:(.+)/m;
+    protected envVarRegex: RegExp = /env:(.+)/m;
 
     resolve(str: string): string | undefined
     {
@@ -13,6 +15,14 @@ export class VariableResolver
             (_: string, value: string): string => {
                 if (this.workspaceRegex.test(value)) {
                     return this.bindIndexedFolder(value);
+                }
+
+                if (this.configVarRegex.test(value)) {
+                    return this.bindWorkspaceConfigVariable(value)
+                }
+
+                if (this.envVarRegex.test(value)) {
+                    return this.bindEnvVariable(value)
                 }
 
                 return this.bindConfiguration(value);
@@ -59,5 +69,25 @@ export class VariableResolver
         }
 
         return '';
+    }
+
+    protected bindWorkspaceConfigVariable(value: string): string {
+        let result = this.configVarRegex.exec(value);
+        if (!result)
+        {
+            return '';
+        }
+
+        // Get value from workspace configuration "settings" dictionary
+        return vscode.workspace.getConfiguration().get(result[1], '');
+    }
+
+    protected bindEnvVariable(value: string): string {
+        let result = this.envVarRegex.exec(value);
+        if (!result) {
+            return '';
+        }
+
+        return process.env[result[1]] || '';
     }
 }
