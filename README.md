@@ -90,4 +90,11 @@ Arguments for the extension:
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
 * description: shown as a placeholder in 'Quick Pick', provides context for the input
 
-In the moment it supports only `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename` [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
+*Variables in arguments*
+As of today, the extension supports variable substitution for: 
+
+* a subset of predefined variables like `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}` 
+* all config variables, pattern: `${config:variable}`
+* all environment variables, pattern: `${env:variable}`
+
+For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
