@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.3.0] - 2021-02-15
+- Added possibility to parse config for the parameters
+
 ## [1.2.0] - 2021-02-04
 - Added `fieldSeparator` and `description` options
 
