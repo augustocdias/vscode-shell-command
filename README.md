@@ -89,6 +89,7 @@ Arguments for the extension:
 * useSingleResult: skip 'Quick Pick' dialog and use the single result if only one returned from the command
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
 * description: shown as a placeholder in 'Quick Pick', provides context for the input
+* maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
 
 As of today, the extension supports variable substitution for: 
 * a subset of predefined variables like `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}` 
