@@ -45,7 +45,8 @@ export class CommandHandler
             env: env,
             useFirstResult: args.useFirstResult,
             useSingleResult: args.useSingleResult,
-            fieldSeparator: args.fieldSeparator
+            fieldSeparator: args.fieldSeparator,
+            maxBuffer: args.maxBuffer
         };
 
         if (args.description !== undefined) {
@@ -71,6 +72,7 @@ export class CommandHandler
             encoding: 'utf8',
             cwd: this.args.cwd,
             env: this.args.env,
+            maxBuffer: this.args.maxBuffer,
 //            shell: vscode.env.shell
         };
         

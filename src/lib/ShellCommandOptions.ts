@@ -7,4 +7,5 @@ export interface ShellCommandOptions
     useSingleResult?: boolean;
     fieldSeparator?: string;
     description?: string;
+    maxBuffer?: number;
 }
