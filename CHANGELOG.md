@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.4.0] - 2021-06-30
+- Added `maxBuffer` option
+
 ## [1.3.0] - 2021-02-15
 - Added possibility to parse config for the parameters
 
