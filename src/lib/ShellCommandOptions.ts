@@ -8,4 +8,5 @@ export interface ShellCommandOptions
     fieldSeparator?: string;
     description?: string;
     maxBuffer?: number;
+    taskId?: string;
 }

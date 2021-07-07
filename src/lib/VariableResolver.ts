@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { UserInputContext } from './UserInputContext';
 
 export class VariableResolver
 {
@@ -7,8 +8,9 @@ export class VariableResolver
     protected workspaceRegex: RegExp = /workspaceFolder\[(\d+)\]/gm;
     protected configVarRegex: RegExp = /config:(.+)/m;
     protected envVarRegex: RegExp = /env:(.+)/m;
+    protected inputVarRegex: RegExp = /input:(.+)/m;
 
-    resolve(str: string): string | undefined
+    resolve(str: string, userInputContext?: UserInputContext): string | undefined
     {
         const result = str.replace(
             this.expressionRegex,
@@ -23,6 +25,10 @@ export class VariableResolver
 
                 if (this.envVarRegex.test(value)) {
                     return this.bindEnvVariable(value)
+                }
+
+                if (userInputContext && this.inputVarRegex.test(value)) {
+                    return this.bindInputVariable(value, userInputContext);
                 }
 
                 return this.bindConfiguration(value);
@@ -89,5 +95,14 @@ export class VariableResolver
         }
 
         return process.env[result[1]] || '';
+    }
+
+    protected bindInputVariable(value: string, userInputContext: UserInputContext): string {
+        let result = this.inputVarRegex.exec(value);
+        if (!result) {
+            return '';
+        }
+
+        return userInputContext.lookupInputValue(result[1]) || '';
     }
 }

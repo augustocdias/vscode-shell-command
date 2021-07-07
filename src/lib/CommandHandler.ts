@@ -3,6 +3,7 @@ import * as subprocess from 'child_process';
 import { ShellCommandOptions } from './ShellCommandOptions';
 import { VariableResolver } from './VariableResolver';
 import { ShellCommandException } from '../util/exceptions';
+import { UserInputContext } from './UserInputContext';
 
 export class CommandHandler
 {
@@ -13,17 +14,21 @@ export class CommandHandler
         matchOnDescription: true,
         matchOnDetail: true
     };
+    protected userInputContext: UserInputContext;
+    protected inputId?: string;
 
-    constructor(args: ShellCommandOptions)
+    constructor(args: ShellCommandOptions, userInputContext: UserInputContext)
     {
         if (!args.hasOwnProperty('command')) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
+        this.inputId = this.resolveCommandToInputId(args.command);
+        this.userInputContext = userInputContext;
 
         const resolver = new VariableResolver();
-        const resolve = (arg: string) => resolver.resolve(arg);
+        const resolve = (arg: string, userInputContext?: UserInputContext) => resolver.resolve(arg, userInputContext);
 
-        const command = resolve(args.command);
+        const command = resolve(args.command, userInputContext);
         if (command === undefined) {
             throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
         }
@@ -73,7 +78,7 @@ export class CommandHandler
             cwd: this.args.cwd,
             env: this.args.env,
             maxBuffer: this.args.maxBuffer,
-//            shell: vscode.env.shell
+        //    shell: vscode.env.shell
         };
         
         return subprocess.execSync(this.args.command!, options);
@@ -95,8 +100,35 @@ export class CommandHandler
             .filter((item: any) => item.label && item.label.trim().length > 0);
     }
 
-    protected quickPick(input: any[])
+    protected async quickPick(input: any[])
     {
-        return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => selection?.value);
+        return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
+            let didCancelQuickPickSession = !selection;
+            if (didCancelQuickPickSession) {
+                this.userInputContext.reset();
+            }
+            else if (this.inputId) {
+                this.userInputContext.recordInput(this.inputId, selection.label);
+            }
+            return selection?.value;
+        })
     }
+
+    protected resolveCommandToInputId(cmd: string | undefined)
+    {
+        // Lookup the inputId from the supplied command input string
+        if (!cmd)
+            return undefined;
+
+        const launchInputs = vscode.workspace.getConfiguration().get('launch.inputs') || [];
+        const taskInputs = vscode.workspace.getConfiguration().get('tasks.inputs') || [];
+
+        let inputs: any[] = [];
+        if (Array.isArray(launchInputs))
+            inputs = inputs.concat(launchInputs);
+        if (Array.isArray(taskInputs))
+            inputs = inputs.concat(taskInputs);
+        
+        return inputs.filter(input => input && input.args && input.args.command && input.args.command == cmd)[0]?.id;
+ }
 }
