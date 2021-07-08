@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.5.0] - 2021-07-08
+- Added basic variable dependency resolution
+
 ## [1.4.0] - 2021-06-30
 - Added `maxBuffer` option
 

@@ -1,13 +1,13 @@
 # Tasks: Shell Input
 
-This extension aims to extend the possibilities of [input](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) in task execution. Currently, VSCode supports 3 types of inputs for your tasks: 
+This extension aims to extend the possibilities of [input](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) in task execution. Currently, VSCode supports 3 types of inputs for your tasks:
 * promptString
 * pickString
 * Command
 
 None of them allows to get an input from a system command for example. This extension executes a shell command in your OS and each line of the output will be used as a possible input for your task.
 
-Usage example: 
+Usage example:
 
 ![Extension Demo](https://github.com/augustocdias/vscode-shell-command/raw/master/demo.gif)
 
@@ -29,11 +29,11 @@ Usage example:
       "command": "shellCommand.execute",
       "args": {
           "command": "cat ${file}",
-          "cwd": "${workspaceFolder}"
+          "cwd": "${workspaceFolder}",
           "env": {
               "WORKSPACE": "${workspaceFolder[0]}",
-              "FILE": ${file},
-              "PROJECT": ${workspaceFolderBasename}
+              "FILE": "${file}",
+              "PROJECT": "${workspaceFolderBasename}"
           }
       }
     }
@@ -91,52 +91,53 @@ Arguments for the extension:
 * description: shown as a placeholder in 'Quick Pick', provides context for the input
 * maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
 
-As of today, the extension supports variable substitution for: 
-* a subset of predefined variables like `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}` 
+As of today, the extension supports variable substitution for:
+* a subset of predefined variables like `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
 * input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
 
-Dependent Input Variables Usage example: 
+Dependent Input Variables Usage example:
+
+```json
 {
-  "tasks": {
-    "version": "2.0.0",
-    "tasks": [
-    {
-      "label": "Nested input",
-      "command": "ls ${input:rootDir}/${input:childDir}",
-      "type": "shell",
-      "problemMatcher": []
-    },
-  ],
-  "inputs": [
-    {
-      "id": "rootDir",
-      "type": "command",
-      "command": "shellCommand.execute",
-      "args": {
-          "command": "ls -1a",
-      }
-    },
-    {
-      "id": "childDir",
-      "type": "command",
-      "command": "shellCommand.execute",
-      "args": {
-          "command": "ls -1a ${input:rootDir}",
-      }
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Nested input",
+                "command": "ls ${input:rootDir}/${input:childDir}",
+                "type": "shell",
+                "problemMatcher": []
+            }
+        ],
+        "inputs": [
+            {
+                "id": "rootDir",
+                "type": "command",
+                "command": "shellCommand.execute",
+                "args": {
+                    "command": "ls -1a"
+                }
+            },
+            {
+                "id": "childDir",
+                "type": "command",
+                "command": "shellCommand.execute",
+                "args": {
+                    "command": "ls -1a ${input:rootDir}"
+                }
+            }
+        ]
     }
-  ]
-  }
 }
+```
 
 There are a few limitations to be aware of:
   * in the main task command the input variables should appear (left to right) in order of dependence
-    * i.e ${input:childDir} must be to the right of it's dependent variable ${input:rootDir}
-    * this can be worked around by having a dummy 'dependsOn' task (or 'preLaunchTask' for launch configs) with a dummy echo task which has the proper variable order
-  
-  * within an input command arg you can only reference other inputs defined with 'shellCommand.execute'
-
-  * ensure you don't have another input with the same exact 'inputs.args.command' in your tasks or launch configs as this may confuse the extension
+    * i.e `${input:childDir}` must be to the right of it's dependent variable `${input:rootDir}`
+    * this can be worked around by having a dummy `dependsOn` task (or `preLaunchTask` for launch configs) with a dummy echo task which has the proper variable order
+  * within an input command arg you can only reference other inputs defined with `shellCommand.execute`
+  * ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
