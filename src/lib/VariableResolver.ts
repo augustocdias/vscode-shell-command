@@ -78,14 +78,28 @@ export class VariableResolver
     }
 
     protected bindWorkspaceConfigVariable(value: string): string {
-        let result = this.configVarRegex.exec(value);
-        if (!result)
-        {
+        let matchResult = this.configVarRegex.exec(value);
+        if (!matchResult) {
             return '';
         }
-
         // Get value from workspace configuration "settings" dictionary
-        return vscode.workspace.getConfiguration().get(result[1], '');
+        let workspaceResult = vscode.workspace.getConfiguration().get(matchResult[1], '');
+        if (workspaceResult) {
+            return workspaceResult;
+        }
+
+        let activeFolderResult = vscode.workspace.getConfiguration("", vscode.window.activeTextEditor?.document.uri).get(matchResult[1], '');
+        if (activeFolderResult) {
+            return activeFolderResult;
+        }
+
+        for (const w of vscode.workspace.workspaceFolders!) {
+            let currentFolderResult = vscode.workspace.getConfiguration("", w.uri).get(matchResult![1], '');
+            if (currentFolderResult) {
+                return currentFolderResult;
+            }
+        }
+        return "";
     }
 
     protected bindEnvVariable(value: string): string {
