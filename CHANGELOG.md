@@ -1,5 +1,8 @@
 # Change Log
 
+## [1.6.0] - 2021-10-21
+- Added support for ${command:...} variable substitutions
+
 ## [1.5.0] - 2021-07-08
 - Added basic variable dependency resolution
 

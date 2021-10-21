@@ -24,30 +24,11 @@ export class CommandHandler
         }
         this.inputId = this.resolveCommandToInputId(args.command);
         this.userInputContext = userInputContext;
-
-        const resolver = new VariableResolver();
-        const resolve = (arg: string, userInputContext?: UserInputContext) => resolver.resolve(arg, userInputContext);
-
-        const command = resolve(args.command, userInputContext);
-        if (command === undefined) {
-            throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
-        }
-
-        const env = args.env;
-        if (env !== undefined) {
-            for (const key in env!) {
-                if (env!.hasOwnProperty(key)) {
-                    env![key] = resolve(env![key]) || '';
-                }
-            }
-        }
-
-        const cwd = (args.cwd) ? resolve(args.cwd!) : vscode.workspace.workspaceFolders![0].uri.fsPath;
-
+        
         this.args = {
-            command: command,
-            cwd: cwd,
-            env: env,
+            command: args.command,
+            cwd: args.cwd,
+            env: args.env,
             useFirstResult: args.useFirstResult,
             useSingleResult: args.useSingleResult,
             fieldSeparator: args.fieldSeparator,
@@ -59,8 +40,33 @@ export class CommandHandler
         }
     }
 
-    handle()
+    protected async resolveArgs()
     {
+        const resolver = new VariableResolver();
+
+        const command = await resolver.resolve(this.args.command, this.userInputContext);
+        if (command === undefined) {
+            throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
+        }
+        else {
+            this.args.command = command;
+        }
+
+        if (this.args.env !== undefined) {
+            for (const key in this.args.env!) {
+                if (this.args.env!.hasOwnProperty(key)) {
+                    this.args.env![key] = await resolver.resolve(this.args.env![key]) || '';
+                }
+            }
+        }
+
+        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!) : vscode.workspace.workspaceFolders![0].uri.fsPath;
+    }
+    
+    async handle()
+    {
+       await this.resolveArgs();
+
         const result = this.runCommand();
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult = (this.args.useFirstResult

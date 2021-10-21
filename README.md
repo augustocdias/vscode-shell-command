@@ -96,6 +96,7 @@ As of today, the extension supports variable substitution for:
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
 * input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
+* Support for ${command:...} pattern, for example to extract CMake's build directory using `${command:cmake.buildDirectory}`.
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
 
