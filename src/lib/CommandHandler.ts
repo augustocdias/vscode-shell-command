@@ -24,7 +24,7 @@ export class CommandHandler
         }
         this.inputId = this.resolveCommandToInputId(args.command);
         this.userInputContext = userInputContext;
-        
+
         this.args = {
             command: args.command,
             cwd: args.cwd,
@@ -55,12 +55,12 @@ export class CommandHandler
         if (this.args.env !== undefined) {
             for (const key in this.args.env!) {
                 if (this.args.env!.hasOwnProperty(key)) {
-                    this.args.env![key] = await resolver.resolve(this.args.env![key]) || '';
+                    this.args.env![key] = await resolver.resolve(this.args.env![key], this.userInputContext) || '';
                 }
             }
         }
 
-        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!) : vscode.workspace.workspaceFolders![0].uri.fsPath;
+        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!, this.userInputContext) : vscode.workspace.workspaceFolders![0].uri.fsPath;
     }
     
     async handle()
@@ -71,10 +71,14 @@ export class CommandHandler
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult = (this.args.useFirstResult
             || (this.args.useSingleResult && nonEmptyInput.length === 1));
-
-        return (useFirstResult
-            ? nonEmptyInput[0].value
-            : this.quickPick(nonEmptyInput));
+        if (useFirstResult) {
+            if (this.inputId && this.userInputContext) {
+                this.userInputContext.recordInput(this.inputId, nonEmptyInput[0].value);
+            }
+            return nonEmptyInput[0].value;
+        } else {
+            return this.quickPick(nonEmptyInput);
+        }
     }
 
     protected runCommand()
