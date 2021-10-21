@@ -9,36 +9,53 @@ export class VariableResolver
     protected configVarRegex: RegExp = /config:(.+)/m;
     protected envVarRegex: RegExp = /env:(.+)/m;
     protected inputVarRegex: RegExp = /input:(.+)/m;
+    protected commandVarRegex = /command:(.+)/m;
 
-    resolve(str: string, userInputContext?: UserInputContext): string | undefined
+    async resolve(str: string, userInputContext?: UserInputContext): Promise<string | undefined>
     {
-        const result = str.replace(
+        const promises: Promise<string | undefined>[] = [];
+
+        // Process the synchronous string interpolations
+        let result = str.replace(
             this.expressionRegex,
             (_: string, value: string): string => {
                 if (this.workspaceRegex.test(value)) {
                     return this.bindIndexedFolder(value);
                 }
-
                 if (this.configVarRegex.test(value)) {
                     return this.bindWorkspaceConfigVariable(value)
                 }
-
                 if (this.envVarRegex.test(value)) {
                     return this.bindEnvVariable(value)
                 }
-
                 if (userInputContext && this.inputVarRegex.test(value)) {
                     return this.bindInputVariable(value, userInputContext);
                 }
-
+                if (this.commandVarRegex.test(value)) {
+                    // We don't replace these yet, they have to be done asynchronously
+                    promises.push(this.bindCommandVariable(value));
+                    return _;
+                }
                 return this.bindConfiguration(value);
             },
         );
-        
+
+        // Process the async string interpolations
+        const data = await Promise.all(promises) as string[];
+        result = result.replace(this.expressionRegex, () => data.shift() ?? '');
+    
         return result === '' ? undefined : result;
     }
 
-
+    protected async bindCommandVariable(value: string): Promise<string> {
+        let match = this.commandVarRegex.exec(value);
+        if (!match)
+            return '';
+        let command = match[1];
+        let result = await vscode.commands.executeCommand(command) as string;
+        return result;
+    }
+    
     protected bindIndexedFolder(value: string): string
     {
         return value.replace(
