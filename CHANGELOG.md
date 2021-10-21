@@ -2,6 +2,8 @@
 
 ## [1.6.0] - 2021-10-21
 - Added support for ${command:...} variable substitutions
+- Fix env and cwd's resolution
+- recordInput when use firstresult
 
 ## [1.5.1] - 2021-09-21
 - Config resolution will work for sub-projects present in a workspace
