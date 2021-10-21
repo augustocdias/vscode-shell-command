@@ -37,12 +37,12 @@ export class CommandHandler
         if (env !== undefined) {
             for (const key in env!) {
                 if (env!.hasOwnProperty(key)) {
-                    env![key] = resolve(env![key]) || '';
+                    env![key] = resolve(env![key], userInputContext) || '';
                 }
             }
         }
 
-        const cwd = (args.cwd) ? resolve(args.cwd!) : vscode.workspace.workspaceFolders![0].uri.fsPath;
+        const cwd = (args.cwd) ? resolve(args.cwd!, userInputContext) : vscode.workspace.workspaceFolders![0].uri.fsPath;
 
         this.args = {
             command: command,
@@ -65,10 +65,14 @@ export class CommandHandler
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult = (this.args.useFirstResult
             || (this.args.useSingleResult && nonEmptyInput.length === 1));
-
-        return (useFirstResult
-            ? nonEmptyInput[0].value
-            : this.quickPick(nonEmptyInput));
+        if (useFirstResult) {
+            if (this.inputId && this.userInputContext) {
+                this.userInputContext.recordInput(this.inputId, nonEmptyInput[0].value);
+            }
+            return nonEmptyInput[0].value;
+        } else {
+            return this.quickPick(nonEmptyInput);
+        }
     }
 
     protected runCommand()
