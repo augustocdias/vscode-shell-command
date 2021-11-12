@@ -118,7 +118,7 @@ export class CommandHandler
                 this.userInputContext.reset();
             }
             else if (this.inputId) {
-                this.userInputContext.recordInput(this.inputId, selection.label);
+                this.userInputContext.recordInput(this.inputId, selection.value);
             }
             return selection?.value;
         })
