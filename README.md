@@ -1,6 +1,7 @@
 # Tasks: Shell Input
 
 This extension aims to extend the possibilities of [input](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) in task execution. Currently, VSCode supports 3 types of inputs for your tasks:
+
 * promptString
 * pickString
 * Command
@@ -82,6 +83,7 @@ VSCode renders it like this:
 ![Process Picker](https://github.com/augustocdias/vscode-shell-command/raw/master/process-picker.png)
 
 Arguments for the extension:
+
 * command: the system command to be executed (must be in PATH)
 * cwd: the directory from within it will be executed
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
@@ -92,7 +94,8 @@ Arguments for the extension:
 * maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
 
 As of today, the extension supports variable substitution for:
-* a subset of predefined variables like `file`, `fileDirName`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
+
+* a subset of predefined variables like `file`, `fileDirName`, `fileBasenameNoExtension`, `fileBasename`, `extension`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
 * input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
@@ -137,8 +140,9 @@ Dependent Input Variables Usage example:
 ```
 
 There are a few limitations to be aware of:
-  * in the main task command the input variables should appear (left to right) in order of dependence
-    * i.e `${input:childDir}` must be to the right of it's dependent variable `${input:rootDir}`
-    * this can be worked around by having a dummy `dependsOn` task (or `preLaunchTask` for launch configs) with a dummy echo task which has the proper variable order
-  * within an input command arg you can only reference other inputs defined with `shellCommand.execute`
-  * ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
+
+* in the main task command the input variables should appear (left to right) in order of dependence
+  * i.e `${input:childDir}` must be to the right of it's dependent variable `${input:rootDir}`
+  * this can be worked around by having a dummy `dependsOn` task (or `preLaunchTask` for launch configs) with a dummy echo task which has the proper variable order
+* within an input command arg you can only reference other inputs defined with `shellCommand.execute`
+* ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension

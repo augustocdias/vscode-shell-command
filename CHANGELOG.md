@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.0] - 2022-01-04
+
+- Added `fileBasename`, `extension` and `fileBasenameNoExtension` options
+
 ## [1.6.1] - 2021-11-16
 
 - Use value instead of label from the user input

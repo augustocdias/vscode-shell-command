@@ -43,7 +43,6 @@ export class VariableResolver
         // Process the async string interpolations
         const data = await Promise.all(promises) as string[];
         result = result.replace(this.expressionRegex, () => data.shift() ?? '');
-    
         return result === '' ? undefined : result;
     }
 
@@ -55,7 +54,7 @@ export class VariableResolver
         let result = await vscode.commands.executeCommand(command) as string;
         return result;
     }
-    
+
     protected bindIndexedFolder(value: string): string
     {
         return value.replace(
@@ -68,7 +67,6 @@ export class VariableResolver
                 ) {
                     return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
                 }
-                
                 return '';
             },
         );
@@ -81,10 +79,28 @@ export class VariableResolver
                 return vscode.workspace.workspaceFolders![0].uri.fsPath;
             case 'workspaceFolderBasename':
                 return vscode.workspace.workspaceFolders![0].name;
+            case 'fileBasenameNoExtension':
+                if(vscode.window.activeTextEditor !== null) {
+                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                    return filePath.name;
+                }
+                return '';
+            case 'fileBasename':
+                if(vscode.window.activeTextEditor !== null) {
+                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                    return filePath.base;
+                }
+                return '';
             case 'file':
                 return (vscode.window.activeTextEditor !== null)
                     ? vscode.window.activeTextEditor!.document.fileName
                     : '';
+            case 'extension':
+                if(vscode.window.activeTextEditor !== null) {
+                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                    return filePath.ext;
+                }
+                return '';
             case 'fileDirName':
                 return (vscode.window.activeTextEditor !== null)
                     ? path.dirname(vscode.window.activeTextEditor!.document.uri.fsPath)

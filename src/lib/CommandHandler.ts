@@ -62,7 +62,7 @@ export class CommandHandler
 
         this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!, this.userInputContext) : vscode.workspace.workspaceFolders![0].uri.fsPath;
     }
-    
+
     async handle()
     {
        await this.resolveArgs();
@@ -90,7 +90,6 @@ export class CommandHandler
             maxBuffer: this.args.maxBuffer,
         //    shell: vscode.env.shell
         };
-        
         return subprocess.execSync(this.args.command!, options);
     }
 
@@ -138,7 +137,6 @@ export class CommandHandler
             inputs = inputs.concat(launchInputs);
         if (Array.isArray(taskInputs))
             inputs = inputs.concat(taskInputs);
-        
         return inputs.filter(input => input && input.args && input.args.command && input.args.command == cmd)[0]?.id;
  }
 }
