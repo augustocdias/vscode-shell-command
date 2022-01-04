@@ -23,21 +23,13 @@ export class CommandHandler
             throw new ShellCommandException('Please specify the "command" property.');
         }
         this.inputId = this.resolveCommandToInputId(args.command);
-        this.userInputContext = userInputContext;
-
-        this.args = {
-            command: args.command,
-            cwd: args.cwd,
-            env: args.env,
-            useFirstResult: args.useFirstResult,
-            useSingleResult: args.useSingleResult,
-            fieldSeparator: args.fieldSeparator,
-            maxBuffer: args.maxBuffer
-        };
 
         if (args.description !== undefined) {
             this.inputOptions.placeHolder = args.description;
         }
+
+        this.userInputContext = userInputContext;
+        this.args = args;
     }
 
     protected async resolveArgs()
@@ -111,6 +103,9 @@ export class CommandHandler
 
     protected async quickPick(input: any[])
     {
+        if (input.length == 0) {
+            input = this.args.defaultOptions ?? [];
+        }
         return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
             let didCancelQuickPickSession = !selection;
             if (didCancelQuickPickSession) {

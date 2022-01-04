@@ -92,6 +92,7 @@ Arguments for the extension:
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
 * description: shown as a placeholder in 'Quick Pick', provides context for the input
 * maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
+* defaultOptions: if the command doesn't return anything, the list provided will be set for the user to choose from
 
 As of today, the extension supports variable substitution for:
 
