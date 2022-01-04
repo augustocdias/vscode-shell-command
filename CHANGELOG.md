@@ -2,7 +2,8 @@
 
 ## [1.7.0] - 2022-01-04
 
-- Added `fileBasename`, `extension` and `fileBasenameNoExtension` options
+- Added `fileBasename`, `extension` and `fileBasenameNoExtension` variables
+- Added `defaultOptions` option
 
 ## [1.6.1] - 2021-11-16
 
