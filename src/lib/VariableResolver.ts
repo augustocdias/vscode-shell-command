@@ -2,17 +2,15 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { UserInputContext } from './UserInputContext';
 
-export class VariableResolver
-{
-    protected expressionRegex: RegExp = /\$\{(.*?)\}/gm;
-    protected workspaceRegex: RegExp = /workspaceFolder\[(\d+)\]/gm;
-    protected configVarRegex: RegExp = /config:(.+)/m;
-    protected envVarRegex: RegExp = /env:(.+)/m;
-    protected inputVarRegex: RegExp = /input:(.+)/m;
+export class VariableResolver {
+    protected expressionRegex = /\$\{(.*?)\}/gm;
+    protected workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
+    protected configVarRegex = /config:(.+)/m;
+    protected envVarRegex = /env:(.+)/m;
+    protected inputVarRegex = /input:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
 
-    async resolve(str: string, userInputContext?: UserInputContext): Promise<string | undefined>
-    {
+    async resolve(str: string, userInputContext?: UserInputContext): Promise<string | undefined> {
         const promises: Promise<string | undefined>[] = [];
 
         // Process the synchronous string interpolations
@@ -47,16 +45,15 @@ export class VariableResolver
     }
 
     protected async bindCommandVariable(value: string): Promise<string> {
-        let match = this.commandVarRegex.exec(value);
+        const match = this.commandVarRegex.exec(value);
         if (!match)
             return '';
-        let command = match[1];
-        let result = await vscode.commands.executeCommand(command) as string;
+        const command = match[1];
+        const result = await vscode.commands.executeCommand(command) as string;
         return result;
     }
 
-    protected bindIndexedFolder(value: string): string
-    {
+    protected bindIndexedFolder(value: string): string {
         return value.replace(
             this.workspaceRegex,
             (_: string, index: string): string => {
@@ -72,22 +69,21 @@ export class VariableResolver
         );
     }
 
-    protected bindConfiguration(value: string): string
-    {
+    protected bindConfiguration(value: string): string {
         switch (value) {
             case 'workspaceFolder':
                 return vscode.workspace.workspaceFolders![0].uri.fsPath;
             case 'workspaceFolderBasename':
                 return vscode.workspace.workspaceFolders![0].name;
             case 'fileBasenameNoExtension':
-                if(vscode.window.activeTextEditor !== null) {
-                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                if (vscode.window.activeTextEditor !== null) {
+                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
                     return filePath.name;
                 }
                 return '';
             case 'fileBasename':
-                if(vscode.window.activeTextEditor !== null) {
-                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                if (vscode.window.activeTextEditor !== null) {
+                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
                     return filePath.base;
                 }
                 return '';
@@ -96,8 +92,8 @@ export class VariableResolver
                     ? vscode.window.activeTextEditor!.document.fileName
                     : '';
             case 'extension':
-                if(vscode.window.activeTextEditor !== null) {
-                    let filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                if (vscode.window.activeTextEditor !== null) {
+                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
                     return filePath.ext;
                 }
                 return '';
@@ -111,23 +107,23 @@ export class VariableResolver
     }
 
     protected bindWorkspaceConfigVariable(value: string): string {
-        let matchResult = this.configVarRegex.exec(value);
+        const matchResult = this.configVarRegex.exec(value);
         if (!matchResult) {
             return '';
         }
         // Get value from workspace configuration "settings" dictionary
-        let workspaceResult = vscode.workspace.getConfiguration().get(matchResult[1], '');
+        const workspaceResult = vscode.workspace.getConfiguration().get(matchResult[1], '');
         if (workspaceResult) {
             return workspaceResult;
         }
 
-        let activeFolderResult = vscode.workspace.getConfiguration("", vscode.window.activeTextEditor?.document.uri).get(matchResult[1], '');
+        const activeFolderResult = vscode.workspace.getConfiguration("", vscode.window.activeTextEditor?.document.uri).get(matchResult[1], '');
         if (activeFolderResult) {
             return activeFolderResult;
         }
 
         for (const w of vscode.workspace.workspaceFolders!) {
-            let currentFolderResult = vscode.workspace.getConfiguration("", w.uri).get(matchResult![1], '');
+            const currentFolderResult = vscode.workspace.getConfiguration("", w.uri).get(matchResult![1], '');
             if (currentFolderResult) {
                 return currentFolderResult;
             }
@@ -136,7 +132,7 @@ export class VariableResolver
     }
 
     protected bindEnvVariable(value: string): string {
-        let result = this.envVarRegex.exec(value);
+        const result = this.envVarRegex.exec(value);
         if (!result) {
             return '';
         }
@@ -145,7 +141,7 @@ export class VariableResolver
     }
 
     protected bindInputVariable(value: string, userInputContext: UserInputContext): string {
-        let result = this.inputVarRegex.exec(value);
+        const result = this.inputVarRegex.exec(value);
         if (!result) {
             return '';
         }

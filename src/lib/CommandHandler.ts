@@ -8,7 +8,7 @@ import { UserInputContext } from './UserInputContext';
 export class CommandHandler
 {
     protected args: ShellCommandOptions;
-    protected EOL: RegExp = /\r\n|\r|\n/;
+    protected EOL = /\r\n|\r|\n/;
     protected inputOptions: vscode.QuickPickOptions = {
         canPickMany: false,
         matchOnDescription: true,
@@ -107,7 +107,7 @@ export class CommandHandler
             input = this.args.defaultOptions ?? [];
         }
         return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
-            let didCancelQuickPickSession = !selection;
+            const didCancelQuickPickSession = !selection;
             if (didCancelQuickPickSession) {
                 this.userInputContext.reset();
             }
