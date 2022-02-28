@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { UserInputContext } from './UserInputContext';
 
 export class VariableResolver {
     protected expressionRegex = /\$\{(.*?)\}/gm;
@@ -10,46 +9,55 @@ export class VariableResolver {
     protected inputVarRegex = /input:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
 
-    async resolve(str: string, userInputContext?: UserInputContext): Promise<string | undefined> {
-        const promises: Promise<string | undefined>[] = [];
+    async resolve(str: string, resolvedVariables: Map<string, string>): Promise<string | undefined> {
+        const promises: Map<string, Promise<string>> = new Map;
+        const commands: [string, number][] = [];
+        let diff = 0;
 
         // Process the synchronous string interpolations
         let result = str.replace(
             this.expressionRegex,
-            (_: string, value: string): string => {
-                if (this.workspaceRegex.test(value)) {
-                    return this.bindIndexedFolder(value);
-                }
-                if (this.configVarRegex.test(value)) {
-                    return this.bindWorkspaceConfigVariable(value)
-                }
-                if (this.envVarRegex.test(value)) {
-                    return this.bindEnvVariable(value)
-                }
-                if (userInputContext && this.inputVarRegex.test(value)) {
-                    return this.bindInputVariable(value, userInputContext);
-                }
-                if (this.commandVarRegex.test(value)) {
+            (match: string, variable: string, offset: number): string => {
+                let value: string;
+                if (this.workspaceRegex.test(variable)) {
+                    value = this.bindIndexedFolder(variable);
+                } else if (this.configVarRegex.test(variable)) {
+                    value = this.bindWorkspaceConfigVariable(variable)
+                } else if (this.envVarRegex.test(variable)) {
+                    value = this.bindEnvVariable(variable)
+                } else if (resolvedVariables && this.inputVarRegex.test(variable)) {
+                    value = this.bindInputVariable(variable, resolvedVariables);
+                } else if (this.commandVarRegex.test(variable)) {
                     // We don't replace these yet, they have to be done asynchronously
-                    promises.push(this.bindCommandVariable(value));
-                    return _;
+                    promises.has(variable) || promises.set(variable, this.bindCommandVariable(variable, resolvedVariables));
+                    commands.unshift([variable, offset + diff]);
+                    value = '';
+                } else {
+                    value = this.bindConfiguration(variable);
                 }
-                return this.bindConfiguration(value);
+                diff += value.length - match.length;
+                return value;
             },
         );
 
         // Process the async string interpolations
-        const data = await Promise.all(promises) as string[];
-        result = result.replace(this.expressionRegex, () => data.shift() ?? '');
+        for (const [command, offset] of commands) {
+            result = result.slice(0, offset) + await promises.get(command) + result.slice(offset);
+        }
         return result === '' ? undefined : result;
     }
 
-    protected async bindCommandVariable(value: string): Promise<string> {
+    protected async bindCommandVariable(value: string, resolvedVariables: Map<string, string>): Promise<string> {
         const match = this.commandVarRegex.exec(value);
         if (!match)
             return '';
         const command = match[1];
-        const result = await vscode.commands.executeCommand(command) as string;
+        let result = resolvedVariables.get(`command:${command}`);
+        if (result) {
+            return result;
+        }
+        result = await vscode.commands.executeCommand(command) as string;
+        resolvedVariables.set(`command:${command}`, result);
         return result;
     }
 
@@ -140,12 +148,12 @@ export class VariableResolver {
         return process.env[result[1]] || '';
     }
 
-    protected bindInputVariable(value: string, userInputContext: UserInputContext): string {
+    protected bindInputVariable(value: string, resolvedVariables: Map<string, string>): string {
         const result = this.inputVarRegex.exec(value);
         if (!result) {
             return '';
         }
 
-        return userInputContext.lookupInputValue(result[1]) || '';
+        return resolvedVariables.get(`input:${result[1]}`) ?? '';
     }
 }

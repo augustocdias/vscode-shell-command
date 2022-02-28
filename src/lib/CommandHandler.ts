@@ -3,7 +3,6 @@ import * as subprocess from 'child_process';
 import { ShellCommandOptions } from './ShellCommandOptions';
 import { VariableResolver } from './VariableResolver';
 import { ShellCommandException } from '../util/exceptions';
-import { UserInputContext } from './UserInputContext';
 
 export class CommandHandler
 {
@@ -14,10 +13,10 @@ export class CommandHandler
         matchOnDescription: true,
         matchOnDetail: true
     };
-    protected userInputContext: UserInputContext;
+    protected resolvedVariables: Map<string, string>;
     protected inputId?: string;
 
-    constructor(args: ShellCommandOptions, userInputContext: UserInputContext)
+    constructor(args: ShellCommandOptions, resolvedVariables: Map<string, string>)
     {
         if (!args.hasOwnProperty('command')) {
             throw new ShellCommandException('Please specify the "command" property.');
@@ -28,7 +27,7 @@ export class CommandHandler
             this.inputOptions.placeHolder = args.description;
         }
 
-        this.userInputContext = userInputContext;
+        this.resolvedVariables = resolvedVariables;
         this.args = args;
     }
 
@@ -36,7 +35,7 @@ export class CommandHandler
     {
         const resolver = new VariableResolver();
 
-        const command = await resolver.resolve(this.args.command, this.userInputContext);
+        const command = await resolver.resolve(this.args.command, this.resolvedVariables);
         if (command === undefined) {
             throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
         }
@@ -47,12 +46,12 @@ export class CommandHandler
         if (this.args.env !== undefined) {
             for (const key in this.args.env!) {
                 if (this.args.env!.hasOwnProperty(key)) {
-                    this.args.env![key] = await resolver.resolve(this.args.env![key], this.userInputContext) || '';
+                    this.args.env![key] = await resolver.resolve(this.args.env![key], this.resolvedVariables) || '';
                 }
             }
         }
 
-        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!, this.userInputContext) : vscode.workspace.workspaceFolders![0].uri.fsPath;
+        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!, this.resolvedVariables) : vscode.workspace.workspaceFolders![0].uri.fsPath;
     }
 
     async handle()
@@ -64,8 +63,8 @@ export class CommandHandler
         const useFirstResult = (this.args.useFirstResult
             || (this.args.useSingleResult && nonEmptyInput.length === 1));
         if (useFirstResult) {
-            if (this.inputId && this.userInputContext) {
-                this.userInputContext.recordInput(this.inputId, nonEmptyInput[0].value);
+            if (this.inputId) {
+                this.resolvedVariables.set(`input:${this.inputId}`, nonEmptyInput[0].value);
             }
             return nonEmptyInput[0].value;
         } else {
@@ -109,10 +108,10 @@ export class CommandHandler
         return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
             const didCancelQuickPickSession = !selection;
             if (didCancelQuickPickSession) {
-                this.userInputContext.reset();
+                this.resolvedVariables.clear();
             }
             else if (this.inputId) {
-                this.userInputContext.recordInput(this.inputId, selection.value);
+                this.resolvedVariables.set(`input:${this.inputId}`, selection.value);
             }
             return selection?.value;
         })
@@ -132,6 +131,6 @@ export class CommandHandler
             inputs = inputs.concat(launchInputs);
         if (Array.isArray(taskInputs))
             inputs = inputs.concat(taskInputs);
-        return inputs.filter(input => input && input.args && input.args.command && input.args.command == cmd)[0]?.id;
+        return inputs.find(input => input?.args?.command === cmd)?.id;
  }
 }
