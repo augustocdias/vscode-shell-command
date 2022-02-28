@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 export class VariableResolver {
-    protected expressionRegex = /\$\{(.*?)\}/gm;
+    protected expressionRegex = /(\$+)\{(.*?)\}/gm;
     protected workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
     protected configVarRegex = /config:(.+)/m;
     protected envVarRegex = /env:(.+)/m;
@@ -17,23 +17,25 @@ export class VariableResolver {
         // Process the synchronous string interpolations
         let result = str.replace(
             this.expressionRegex,
-            (match: string, variable: string, offset: number): string => {
-                let value: string;
-                if (this.workspaceRegex.test(variable)) {
-                    value = this.bindIndexedFolder(variable);
+            (match: string, dollars: string, variable: string, offset: number): string => {
+                // Every '$$' before '{' will be interpreted as one literal dollar
+                let value = '$'.repeat(dollars.length / 2);
+                if (dollars.length % 2 === 0) {
+                    value += `{${variable}}`;
+                } else if (this.workspaceRegex.test(variable)) {
+                    value += this.bindIndexedFolder(variable);
                 } else if (this.configVarRegex.test(variable)) {
-                    value = this.bindWorkspaceConfigVariable(variable)
+                    value += this.bindWorkspaceConfigVariable(variable)
                 } else if (this.envVarRegex.test(variable)) {
-                    value = this.bindEnvVariable(variable)
+                    value += this.bindEnvVariable(variable)
                 } else if (resolvedVariables && this.inputVarRegex.test(variable)) {
-                    value = this.bindInputVariable(variable, resolvedVariables);
+                    value += this.bindInputVariable(variable, resolvedVariables);
                 } else if (this.commandVarRegex.test(variable)) {
                     // We don't replace these yet, they have to be done asynchronously
                     promises.has(variable) || promises.set(variable, this.bindCommandVariable(variable, resolvedVariables));
-                    commands.unshift([variable, offset + diff]);
-                    value = '';
+                    commands.unshift([variable, offset + diff + value.length]);
                 } else {
-                    value = this.bindConfiguration(variable);
+                    value += this.bindConfiguration(variable);
                 }
                 diff += value.length - match.length;
                 return value;
