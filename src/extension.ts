@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { ShellCommandOptions } from './lib/ShellCommandOptions';
 import { CommandHandler } from './lib/CommandHandler';
 import { ShellCommandException } from './util/exceptions';
+import { ResolvedVariableContext } from './lib/ResolvedVariableContext';
 
 export function activate(this: any, context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
-    const resolvedVariables: Map<string, string> = new Map;
+    const resolvedVariables = new ResolvedVariableContext;
     const callback = (args: ShellCommandOptions) => {
         try {
             const handler = new CommandHandler(args, resolvedVariables);

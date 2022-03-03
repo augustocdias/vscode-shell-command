@@ -3,6 +3,7 @@ import * as subprocess from 'child_process';
 import { ShellCommandOptions } from './ShellCommandOptions';
 import { VariableResolver } from './VariableResolver';
 import { ShellCommandException } from '../util/exceptions';
+import { ResolvedVariableContext } from './ResolvedVariableContext';
 
 export class CommandHandler
 {
@@ -13,10 +14,10 @@ export class CommandHandler
         matchOnDescription: true,
         matchOnDetail: true
     };
-    protected resolvedVariables: Map<string, string>;
+    protected resolvedVariables: ResolvedVariableContext;
     protected inputId?: string;
 
-    constructor(args: ShellCommandOptions, resolvedVariables: Map<string, string>)
+    constructor(args: ShellCommandOptions, resolvedVariables: ResolvedVariableContext)
     {
         if (!args.hasOwnProperty('command')) {
             throw new ShellCommandException('Please specify the "command" property.');
@@ -56,7 +57,7 @@ export class CommandHandler
 
     async handle()
     {
-       await this.resolveArgs();
+        await this.resolveArgs();
 
         const result = this.runCommand();
         const nonEmptyInput = this.parseResult(result);
@@ -123,8 +124,8 @@ export class CommandHandler
         if (!cmd)
             return undefined;
 
-        const launchInputs = vscode.workspace.getConfiguration().get('launch.inputs') || [];
-        const taskInputs = vscode.workspace.getConfiguration().get('tasks.inputs') || [];
+        const launchInputs = vscode.workspace.getConfiguration('launch').get('inputs', []);
+        const taskInputs = vscode.workspace.getConfiguration('tasks').get('inputs', []);
 
         let inputs: any[] = [];
         if (Array.isArray(launchInputs))
