@@ -23,7 +23,7 @@ export class CommandHandler
         if (!args.hasOwnProperty('command')) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
-        this.inputId = this.resolveCommandToInputId(args.command);
+        this.inputId = this.inferInputId(args);
 
         if (args.description !== undefined) {
             this.inputOptions.placeHolder = args.description;
@@ -121,12 +121,19 @@ export class CommandHandler
         })
     }
 
-    protected resolveCommandToInputId(cmd: string | undefined)
+    protected inferInputId(args: ShellCommandOptions)
     {
-        // Lookup the inputId from the supplied command input string
-        if (!cmd)
-            return undefined;
+        const serialize = (o: any) => {
+            return JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort()));
+        }
 
+        // Lookup the inputId from args directly
+        if (args.id !== undefined) {
+            return args.id;
+        }
+
+        // Deduce the inputId from args
+        const serializedArgs = serialize(args);
         const launchInputs = vscode.workspace.getConfiguration('launch').get('inputs', []);
         const taskInputs = vscode.workspace.getConfiguration('tasks').get('inputs', []);
 
@@ -135,6 +142,11 @@ export class CommandHandler
             inputs = inputs.concat(launchInputs);
         if (Array.isArray(taskInputs))
             inputs = inputs.concat(taskInputs);
-        return inputs.find(input => input?.args?.command === cmd)?.id;
+        return inputs.find(input => {
+            return input.type === 'command' &&
+                input.command === 'shellCommand.execute' &&
+                input.args.id === undefined &&
+                serialize(input.args) === serializedArgs;
+        })?.id;
  }
 }

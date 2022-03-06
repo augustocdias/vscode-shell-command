@@ -1,5 +1,6 @@
 export interface ShellCommandOptions
 {
+    id?: string;
     cwd: string | undefined;
     command: string;
     env: { [s: string]: string } | undefined;
@@ -8,6 +9,5 @@ export interface ShellCommandOptions
     fieldSeparator?: string;
     description?: string;
     maxBuffer?: number;
-    taskId?: string;
     defaultOptions?: [string];
 }
