@@ -2,27 +2,33 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { VariableResolveException } from '../util/exceptions';
 import { ResolvedVariableContext } from './ResolvedVariableContext';
+import { activeFile, activeWorkspaceFolder, defaultWorkspaceFolder } from '../util/utils';
 
 export class VariableResolver {
     protected expressionRegex = /(\$+)\{(.*?)\}/gm;
     protected workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
 
     protected get activeFile(): vscode.TextDocument | undefined {
-        return vscode.window.activeTextEditor?.document;
+        return activeFile();
     }
 
     protected get activeWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
-        return this.activeFile && vscode.workspace.getWorkspaceFolder(this.activeFile.uri);
+        return activeWorkspaceFolder();
     }
 
-    async resolve(str: string, resolvedVariables: ResolvedVariableContext): Promise<string | undefined> {
-        const commands: [string, number][] = [];
+    async resolve(str: string, resolvedVariables: ResolvedVariableContext): Promise<string> {
+        const asyncVariables: [string, number][] = [];
         let diff = 0;
 
         // Process the synchronous string interpolations
         let result = str.replace(
             this.expressionRegex,
             (match: string, dollars: string, variable: string, offset: number): string => {
+                // Defer the asynchronous replacement
+                const defer = () => {
+                    return asyncVariables.unshift([variable, offset + diff]), '';
+                };
+
                 // Omit nested variables
                 if (variable.includes('${')) {
                     return match;
@@ -51,15 +57,13 @@ export class VariableResolver {
                         break;
                     case 'command':
                         // We don't replace these yet, they have to be done asynchronously
-                        value = this.resolveCommand(name ?? error(), resolvedVariables) ?? (
-                            commands.unshift([variable, offset + diff]), ''
-                        );
+                        value = this.resolveCommand(name ?? error(), resolvedVariables, defer);
                         break;
                     case 'input':
                         value = this.resolveInput(name ?? error(), resolvedVariables);
                         break;
                     default:
-                        value = this.resolvePredefined(namespace, name, variable);
+                        value = this.resolvePredefined(namespace, name, variable, resolvedVariables, defer);
                 }
                 diff += value.length - match.length;
                 return dollars + value;
@@ -68,10 +72,10 @@ export class VariableResolver {
 
         // Process the async string interpolations
         await resolvedVariables;
-        for (const [command, offset] of commands) {
-            result = result.slice(0, offset) + resolvedVariables.get(command) + result.slice(offset);
+        for (const [key, offset] of asyncVariables) {
+            result = result.slice(0, offset) + resolvedVariables.get(key) + result.slice(offset);
         }
-        return result === '' ? undefined : result;
+        return result;
     }
 
     protected resolveEnviron(name: string): string {
@@ -97,14 +101,15 @@ export class VariableResolver {
         return result ?? ''
     }
 
-    protected resolveCommand(command: string, resolvedVariables: ResolvedVariableContext): string | undefined {
-        return resolvedVariables.get(`command:${command}`, () =>
-            vscode.commands.executeCommand(command).then(value => {
+    protected resolveCommand(command: string, resolvedVariables: ResolvedVariableContext, defer: () => string): string {
+        return resolvedVariables.get(`command:${command}`, () => {
+            return vscode.commands.executeCommand(command).then(value => {
                 if (typeof value === 'string') {
                     return value;
                 }
                 throw new VariableResolveException(`command:${command}`, 'command must return string value');
-            }));
+            });
+        }) ?? defer();
     }
 
     protected resolveInput(name: string, resolvedVariables: ResolvedVariableContext): string {
@@ -112,7 +117,10 @@ export class VariableResolver {
         return resolvedVariables.get(`input:${name}`) ?? '';
     }
 
-    protected resolvePredefined(name: string, arg: string | undefined, variable: string): string {
+    protected resolvePredefined(
+        name: string, arg: string | undefined, variable: string,
+        resolvedVariables: ResolvedVariableContext, defer: () => string
+    ): string {
         const selection = () => {
             if (!vscode.window.activeTextEditor) {
                 throw new VariableResolveException(variable, 'no open editor');
@@ -182,8 +190,7 @@ export class VariableResolver {
             case 'fileExtname':
                 return path.extname(activeFile().fileName);
             case 'cwd':
-                // Currently is the same with '${workspaceFolder}'
-                return workspaceFolder().uri.fsPath;
+                return resolvedVariables.get('cwd', defaultWorkspaceFolder()?.uri.fsPath ?? process.cwd());
             case 'lineNumber':
                 return `${selection().active.line + 1}`;
             case 'selectedText': {
@@ -195,18 +202,14 @@ export class VariableResolver {
             }
             case 'execPath':
                 return vscode.env.appRoot;
-            // TODO: use vscode.tasks.fetchTasks, which is asynchronous
-            /* 
-            case 'defaultBuildTask': {
-                const task = vscode.workspace.getConfiguration('tasks')
-                    .get<vscode.Task[]>('tasks', [])
-                    .find(task => task.group?.isDefault);
-                if (!task) {
-                    throw new VariableResolveException(variable, 'no default build task');
-                }
-                return task.name;
-            }
-             */
+            case 'defaultBuildTask':
+                return resolvedVariables.get('defaultBuildTask', async () => {
+                    const task = (await vscode.tasks.fetchTasks()).find(task => task.group?.isDefault);
+                    if (!task) {
+                        throw new VariableResolveException(variable, 'no default build task');
+                    }
+                    return task.name;
+                }) ?? defer();
             case 'pathSeparator':
                 return path.sep;
             default: {

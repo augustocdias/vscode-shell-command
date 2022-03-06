@@ -5,17 +5,18 @@ export class ResolvedVariableContext extends Map<string, string> implements Prom
     get(key: string, defaultValue: string): string;
     get(key: string, defaultValue: () => Thenable<string>): string | undefined;
     get(key: string, defaultValue?: string | (() => Thenable<string>)): string | undefined {
-        if (!this.has(key, typeof defaultValue === 'function') && defaultValue !== undefined) {
-            this.set(key, defaultValue);
+        const isAsync = typeof defaultValue === 'function';
+        if (!this.has(key, isAsync) && defaultValue !== undefined) {
+            this.set(key, isAsync ? defaultValue() : defaultValue);
         }
         return super.get(key);
     }
 
-    set(key: string, value: string | (() => Thenable<string>)): this {
+    set(key: string, value: string | Thenable<string>): this {
         if (typeof value === 'string') {
             return super.set(key, value)
         }
-        return this.pendings.set(key, value().then(value => {
+        return this.pendings.set(key, value.then(value => {
             super.set(key, value);
             this.pendings.delete(key);
         }, reason => {
@@ -25,7 +26,7 @@ export class ResolvedVariableContext extends Map<string, string> implements Prom
     }
 
     has(key: string, includePending = false): boolean {
-        return super.has(key) || includePending && this.pendings.has(key);
+        return super.has(key) || includePending && this.hasPending(key);
     }
 
     hasPending(key: string): boolean {

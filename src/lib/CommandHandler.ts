@@ -4,6 +4,7 @@ import { ShellCommandOptions } from './ShellCommandOptions';
 import { VariableResolver } from './VariableResolver';
 import { ShellCommandException } from '../util/exceptions';
 import { ResolvedVariableContext } from './ResolvedVariableContext';
+import { defaultWorkspaceFolder } from '../util/utils';
 
 export class CommandHandler
 {
@@ -36,23 +37,25 @@ export class CommandHandler
     {
         const resolver = new VariableResolver();
 
-        const command = await resolver.resolve(this.args.command, this.resolvedVariables);
-        if (command === undefined) {
-            throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
-        }
-        else {
-            this.args.command = command;
-        }
+        this.resolvedVariables.set('cwd', this.args.cwd = await resolver.resolve(
+            this.args.cwd ?? defaultWorkspaceFolder()?.uri.fsPath ?? process.cwd(),
+            this.resolvedVariables
+        ));
 
         if (this.args.env !== undefined) {
             for (const key in this.args.env!) {
                 if (this.args.env!.hasOwnProperty(key)) {
-                    this.args.env![key] = await resolver.resolve(this.args.env![key], this.resolvedVariables) || '';
+                    this.args.env![key] = await resolver.resolve(this.args.env![key], this.resolvedVariables);
                 }
             }
         }
 
-        this.args.cwd = this.args.cwd ? await resolver.resolve(this.args.cwd!, this.resolvedVariables) : vscode.workspace.workspaceFolders![0].uri.fsPath;
+        const command = await resolver.resolve(this.args.command, this.resolvedVariables);
+        if (!command) {
+            throw new ShellCommandException('Your command is badly formatted and variables could not be resolved');
+        } else {
+            this.args.command = command;
+        }
     }
 
     async handle()
