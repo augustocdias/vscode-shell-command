@@ -124,14 +124,18 @@ export class CommandHandler
         if (!cmd)
             return undefined;
 
-        const launchInputs = vscode.workspace.getConfiguration().get('launch.inputs') || [];
-        const taskInputs = vscode.workspace.getConfiguration().get('tasks.inputs') || [];
-
         let inputs: any[] = [];
-        if (Array.isArray(launchInputs))
-            inputs = inputs.concat(launchInputs);
-        if (Array.isArray(taskInputs))
-            inputs = inputs.concat(taskInputs);
+        if (vscode.workspace.workspaceFolders) {
+            vscode.workspace.workspaceFolders?.forEach(function (folder) {
+                const launchInputs = vscode.workspace.getConfiguration("launch", folder.uri).get('inputs') || [];
+                const taskInputs = vscode.workspace.getConfiguration('tasks', folder.uri).get('inputs') || [];
+                if (Array.isArray(launchInputs))
+                    inputs = inputs.concat(launchInputs);
+                if (Array.isArray(taskInputs))
+                    inputs = inputs.concat(taskInputs);
+            });
+        }
+
         return inputs.filter(input => input && input.args && input.args.command && input.args.command == cmd)[0]?.id;
  }
 }
