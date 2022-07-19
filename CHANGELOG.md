@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.1] - 2022-07-19
+
+- Fix multi root inputs
+
 ## [1.7.0] - 2022-01-04
 
 - Added `fileBasename`, `extension` and `fileBasenameNoExtension` variables
