@@ -147,3 +147,7 @@ There are a few limitations to be aware of:
   * this can be worked around by having a dummy `dependsOn` task (or `preLaunchTask` for launch configs) with a dummy echo task which has the proper variable order
 * within an input command arg you can only reference other inputs defined with `shellCommand.execute`
 * ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
+
+# Misc
+
+[Icon created by Eucalyp - Flaticon](https://www.flaticon.com/)

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.2] - 2022-07-19
+
+- Add icon
+
 ## [1.7.1] - 2022-07-19
 
 - Fix multi root inputs
