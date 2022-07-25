@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.3] - 2022-07-25
+
+- Fix error where tasks defined in root workspaces failed to resolve variables
+
 ## [1.7.2] - 2022-07-19
 
 - Add icon
