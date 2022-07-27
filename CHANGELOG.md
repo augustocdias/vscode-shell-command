@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.4] - 2022-07-27
+
+- Fix error where tasks defined in root workspaces failed to resolve variables
+
 ## [1.7.3] - 2022-07-25
 
 - Fix error where tasks defined in root workspaces failed to resolve variables
