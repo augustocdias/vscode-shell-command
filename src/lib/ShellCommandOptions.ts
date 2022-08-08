@@ -10,4 +10,5 @@ export interface ShellCommandOptions
     maxBuffer?: number;
     taskId?: string;
     defaultOptions?: [string];
+    allowNewValues?: boolean;
 }

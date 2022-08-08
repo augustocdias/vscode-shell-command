@@ -103,15 +103,26 @@ export class CommandHandler {
         if (input.length == 0) {
             input = this.args.defaultOptions ?? [];
         }
-        return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
-            const didCancelQuickPickSession = !selection;
-            if (didCancelQuickPickSession) {
-                this.userInputContext.reset();
-            } else if (this.inputId) {
-                this.userInputContext.recordInput(this.inputId, selection.value);
+        return new Promise((resolve) => {
+            const quickPick = vscode.window.createQuickPick();
+            quickPick.items = input;
+            Object.assign(quickPick, this.inputOptions)
+            quickPick.placeholder = this.inputOptions.placeHolder
+            if (this.args.allowNewValues == true) {
+                quickPick.onDidChangeValue(() => {
+                    quickPick.items = input
+                    if (!input.map(element=>element.label).includes(quickPick.value) && quickPick.value !== "") {
+                        quickPick.items = [{label: quickPick.value}, ...input]
+                    }
+                })
             }
-            return selection?.value;
-        });
+            quickPick.onDidAccept(() => {
+                const selection = quickPick.activeItems[0]
+                resolve(selection.label)
+                quickPick.hide()
+            })
+            quickPick.show();
+        })
     }
 
     protected resolveCommandToInputId(cmd: string | undefined) {
