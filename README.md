@@ -12,7 +12,7 @@ Usage example:
 
 ![Extension Demo](https://github.com/augustocdias/vscode-shell-command/raw/master/demo.gif)
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -31,11 +31,11 @@ Usage example:
       "args": {
           "command": "cat ${file}",
           "cwd": "${workspaceFolder}",
-          "env": {
-              "WORKSPACE": "${workspaceFolder[0]}",
-              "FILE": "${file}",
-              "PROJECT": "${workspaceFolderBasename}"
-          }
+          "env": [
+            {"name": "WORKSPACE", "value": "${workspaceFolder[0]}"},
+            {"name": "FILE", "value": "${file}"},
+            {"name": "PROJECT", "value": "${workspaceFolderBasename}"},
+          ]
       }
     }
   ]
@@ -44,7 +44,7 @@ Usage example:
 
 By default the extension returns the exact string value that was produced by the shell command and then shown and selected in 'Quick Pick' dialog. However, sometimes it is useful to show more descriptive information than the internal string value that is returned. This can be done by specifying a `fieldSeparator` and making the shell command return lines containing multiple fields separated by that value. Supported fields are:
 
-```
+```text
 <value>|<label>|<description>|<detail>
 ```
 
@@ -52,7 +52,7 @@ Here, `<value>` is what is returned as input variable and is not shown in the UI
 
 Next example shows a process picker very similar to the built-in `${command:pickProcess}`:
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -86,7 +86,7 @@ Arguments for the extension:
 
 * command: the system command to be executed (must be in PATH)
 * cwd: the directory from within it will be executed
-* env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
+* env: array of name-value objects to use as environment variables (overiding the existing ones)
 * useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
 * useSingleResult: skip 'Quick Pick' dialog and use the single result if only one returned from the command
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
@@ -99,55 +99,16 @@ As of today, the extension supports variable substitution for:
 * a subset of predefined variables like `file`, `fileDirName`, `fileBasenameNoExtension`, `fileBasename`, `extension`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
-* input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
+* input variables defined with shellCommand.execute, pattern: `${input:variable}` (these variables are resolved recursively)
 * Support for ${command:...} pattern, for example to extract CMake's build directory using `${command:cmake.buildDirectory}`.
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
 
-Dependent Input Variables Usage example:
+## Known Limitations
 
-```json
-{
-    "tasks": {
-        "version": "2.0.0",
-        "tasks": [
-            {
-                "label": "Nested input",
-                "command": "ls ${input:rootDir}/${input:childDir}",
-                "type": "shell",
-                "problemMatcher": []
-            }
-        ],
-        "inputs": [
-            {
-                "id": "rootDir",
-                "type": "command",
-                "command": "shellCommand.execute",
-                "args": {
-                    "command": "ls -1a"
-                }
-            },
-            {
-                "id": "childDir",
-                "type": "command",
-                "command": "shellCommand.execute",
-                "args": {
-                    "command": "ls -1a ${input:rootDir}"
-                }
-            }
-        ]
-    }
-}
-```
+* When referencing other input values, only those defined using shellCommand.execute are supported
+* Ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
 
-There are a few limitations to be aware of:
-
-* in the main task command the input variables should appear (left to right) in order of dependence
-  * i.e `${input:childDir}` must be to the right of it's dependent variable `${input:rootDir}`
-  * this can be worked around by having a dummy `dependsOn` task (or `preLaunchTask` for launch configs) with a dummy echo task which has the proper variable order
-* within an input command arg you can only reference other inputs defined with `shellCommand.execute`
-* ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
-
-# Misc
+## Misc
 
 [Icon created by Eucalyp - Flaticon](https://www.flaticon.com/)

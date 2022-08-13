@@ -1,5 +1,12 @@
 # Change Log
 
+## [TBD] - 2022-08-13
+
+- Support recursive resolving of dependent variables in order of ocurrence.
+- **BREAKING**: `env` changed from simple key-value map to an array of `{name, value}` objects, this is required to ensure correct resolving order (indirect env dependency).
+  - It now overrides existing os environ for command execution, instead of replacing them (former behavior).
+- Throw error when resolving unknown input variables.
+
 ## [1.7.4] - 2022-07-27
 
 - Fix error where tasks defined in root workspaces failed to resolve variables
