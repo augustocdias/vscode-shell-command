@@ -86,7 +86,7 @@ Arguments for the extension:
 
 * command: the system command to be executed (must be in PATH)
 * cwd: the directory from within it will be executed
-* env: array of name-value objects to use as environment variables (overiding the existing ones)
+* env: array of name-value objects to use as environment variables (overriding the existing ones)
 * useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
 * useSingleResult: skip 'Quick Pick' dialog and use the single result if only one returned from the command
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields

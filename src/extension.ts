@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as subprocess from "child_process";
 import * as path from "path";
 
-export const InputCommandIdentifier = "shell.exec";
+export const InputCommandIdentifier = "shellCommand.execute";
 
 export function activate(this: any, context: vscode.ExtensionContext) {
     const cache = new Cache();
@@ -48,7 +48,7 @@ interface NameValuePair {
     value: string;
 }
 
-// Options is the `.inputs[].args` for shell.exec
+// Options is the `.inputs[].args` for shellCommand.execute
 interface Options {
     cwd: string | undefined;
     command: string;
@@ -417,8 +417,7 @@ function bindInputVariable(ctx: Cache, value: string, allInputs: any[]): Job {
         (x) => x && x.id && x.command && x.id === inputId && x.command === InputCommandIdentifier,
     )[0];
     if (!dep) {
-        console.error(`Unhandled dependent input ${inputId}`);
-        return { value: `\${input:${inputId}}` };
+        throw new Error(`Unsupported input variable \${input:${inputId}}`);
     }
 
     console.info(
