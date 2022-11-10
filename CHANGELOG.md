@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.5] - 2022-11-10
+
+- Fix userInputContext auto reset invalid
+
 ## [1.7.4] - 2022-07-27
 
 - Fix error where tasks defined in root workspaces failed to resolve variables
