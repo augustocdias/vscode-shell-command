@@ -119,11 +119,11 @@ export class CommandHandler {
         if (!cmd) return undefined;
 
         let inputs: any[] = [];
-        const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs") || [];
-        const taskInputs = vscode.workspace.getConfiguration("tasks").inspect("inputs") || [];
-        inputs = inputs.concat(launchInputs.workspaceValue as any[]);
-        inputs = inputs.concat(taskInputs.workspaceValue as any[]);
-        inputs = inputs.concat(taskInputs.globalValue as any[]);
+        const launchInputs: {workspaceValue: any[]} = vscode.workspace.getConfiguration("launch").inspect("inputs") || [];
+        const taskInputs: {workspaceValue: any[], globalValue: any[]} = vscode.workspace.getConfiguration("tasks").inspect("inputs") || [];
+        inputs = inputs.concat(launchInputs.workspaceValue);
+        inputs = inputs.concat(taskInputs.workspaceValue);
+        inputs = inputs.concat(taskInputs.globalValue);
 
         return inputs.filter(
             (input) => input && input.args && input.args.command == cmd && input.args.description == desc,
