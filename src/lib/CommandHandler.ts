@@ -20,7 +20,7 @@ export class CommandHandler {
         if (!args.hasOwnProperty("command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
-        this.inputId = this.resolveCommandToInputId(args.command);
+        this.inputId = this.resolveCommandToInputId(args.command, args.description);
 
         if (args.description !== undefined) {
             this.inputOptions.placeHolder = args.description;
@@ -114,30 +114,19 @@ export class CommandHandler {
         });
     }
 
-    protected resolveCommandToInputId(cmd: string | undefined) {
+    protected resolveCommandToInputId(cmd: string | undefined, desc: string | undefined) {
         // Lookup the inputId from the supplied command input string
         if (!cmd) return undefined;
 
         let inputs: any[] = [];
-        if (vscode.workspace.workspaceFolders) {
-            vscode.workspace.workspaceFolders?.forEach(function (folder) {
-                const launchInputs =
-                    vscode.workspace.getConfiguration("launch", folder.uri).get("inputs") || [];
-                const taskInputs =
-                    vscode.workspace.getConfiguration("tasks", folder.uri).get("inputs") || [];
-                const workspaceLaunchInputs =
-                    vscode.workspace.getConfiguration("launch").get("inputs") || [];
-                const workspaceTaskInputs =
-                    vscode.workspace.getConfiguration("tasks").get("inputs") || [];
-                inputs = inputs.concat(launchInputs);
-                inputs = inputs.concat(taskInputs);
-                inputs = inputs.concat(workspaceLaunchInputs);
-                inputs = inputs.concat(workspaceTaskInputs);
-            });
-        }
+        const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs") || [];
+        const taskInputs = vscode.workspace.getConfiguration("tasks").inspect("inputs") || [];
+        inputs = inputs.concat(launchInputs.workspaceValue as any[]);
+        inputs = inputs.concat(taskInputs.workspaceValue as any[]);
+        inputs = inputs.concat(taskInputs.globalValue as any[]);
 
         return inputs.filter(
-            (input) => input && input.args && input.args.command && input.args.command == cmd,
+            (input) => input && input.args && input.args.command == cmd && input.args.description == desc,
         )[0]?.id;
     }
 }
