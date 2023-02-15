@@ -89,6 +89,8 @@ Arguments for the extension:
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
 * useSingleResult: skip 'Quick Pick' dialog and use the single result if only one returned from the command
+* rememberPrevious: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskID to be set**)
+* taskId: Unique id to use for storing the last-used value.
 * fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
 * description: shown as a placeholder in 'Quick Pick', provides context for the input
 * maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed

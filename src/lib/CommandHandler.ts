@@ -4,30 +4,24 @@ import { ShellCommandOptions } from "./ShellCommandOptions";
 import { VariableResolver } from "./VariableResolver";
 import { ShellCommandException } from "../util/exceptions";
 import { UserInputContext } from "./UserInputContext";
+import { QuickPickItem } from "./QuickPickItem";
 
 export class CommandHandler {
     protected args: ShellCommandOptions;
     protected EOL = /\r\n|\r|\n/;
-    protected inputOptions: vscode.QuickPickOptions = {
-        canPickMany: false,
-        matchOnDescription: true,
-        matchOnDetail: true,
-    };
+    protected context: vscode.ExtensionContext;
     protected userInputContext: UserInputContext;
     protected inputId?: string;
 
-    constructor(args: ShellCommandOptions, userInputContext: UserInputContext) {
+    constructor(args: ShellCommandOptions, userInputContext: UserInputContext, context: vscode.ExtensionContext) {
         if (!args.hasOwnProperty("command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
         this.inputId = this.resolveCommandToInputId(args.command, args.description);
 
-        if (args.description !== undefined) {
-            this.inputOptions.placeHolder = args.description;
-        }
-
         this.userInputContext = userInputContext;
         this.args = args;
+        this.context = context;
     }
 
     protected async resolveArgs() {
@@ -40,6 +34,12 @@ export class CommandHandler {
             );
         } else {
             this.args.command = command;
+        }
+
+        if (this.args.rememberPrevious && this.args.taskId == undefined) {
+            throw new ShellCommandException(
+                "You need to specify a taskId when using rememberPrevious=true",
+            );
         }
 
         if (this.args.env !== undefined) {
@@ -84,33 +84,93 @@ export class CommandHandler {
         return subprocess.execSync(this.args.command!, options);
     }
 
-    protected parseResult(result: string) {
+    protected parseResult(result: string): QuickPickItem[] {
         return result
             .split(this.EOL)
-            .map((value: string) => {
+            .map<QuickPickItem>((value: string) => {
                 const values = value.trim().split(this.args.fieldSeparator!, 4);
                 return {
                     value: values[0],
                     label: values[1] ?? value,
                     description: values[2],
                     detail: values[3],
-                };
+                }
             })
             .filter((item: any) => item.label && item.label.trim().length > 0);
     }
 
-    protected async quickPick(input: any[]) {
+    protected getDefault(id: string) {
+		return this.context.workspaceState.get<string>(id, "");
+	}
+
+	protected async setDefault(id: string, value: string) {
+		await this.context.workspaceState.update(id, value);
+	}
+
+    protected async quickPick(input: QuickPickItem[]) {
         if (input.length == 0) {
-            input = this.args.defaultOptions ?? [];
+            input = this.args.defaultOptions?.map(o => {
+                return {
+                    value: o,
+                    label: o
+                };
+            }) ?? [];
         }
-        return vscode.window.showQuickPick(input, this.inputOptions).then((selection) => {
-            const didCancelQuickPickSession = !selection;
-            if (didCancelQuickPickSession) {
-                this.userInputContext.reset();
-            } else if (this.inputId) {
-                this.userInputContext.recordInput(this.inputId, selection.value);
+  
+        let defaultValue: string = '';
+        if (this.args.rememberPrevious && this.args.taskId) {
+            defaultValue = this.getDefault(this.args.taskId);
+        }
+
+        return new Promise<string | undefined>((resolve) => {
+            const picker = vscode.window.createQuickPick();
+            picker.canSelectMany = false;
+            picker.matchOnDescription = true;
+            picker.matchOnDetail = true;
+
+            if (this.args.description !== undefined) {
+                picker.placeholder = this.args.description;
             }
-            return selection?.value;
+
+            const disposable = vscode.Disposable.from(
+                picker,
+                picker.onDidAccept(() => {
+                    disposable.dispose();
+                }),
+    
+                picker.onDidHide(() => {
+                    const didCancelQuickPickSession = picker?.selectedItems?.length == 0 ?? true;
+                    if (didCancelQuickPickSession) {
+                        this.userInputContext.reset();
+                        resolve(undefined);
+                    } else if (this.inputId)  {
+                        const selection = picker.selectedItems[0].label;
+                        this.userInputContext.recordInput(this.inputId, selection);
+                        if (this.args.rememberPrevious && this.args.taskId) {
+                            this.setDefault(this.args.taskId, selection);
+                        }
+                        resolve(selection);
+                    }
+                    disposable.dispose();
+                }),
+            );
+
+            picker.items = input.map(
+                (item) =>
+                    ({
+                        label: item.label,
+                        description: item.label == defaultValue ? 'Default' : undefined,
+                    } as vscode.QuickPickItem),
+            );
+    
+            for (const item of picker.items) {
+                if (item.label === defaultValue) {
+                    picker.activeItems = [item];
+                    break;
+                }
+            }
+    
+            picker.show();
         });
     }
 
@@ -119,11 +179,11 @@ export class CommandHandler {
         if (!cmd) return undefined;
 
         let inputs: any[] = [];
-        const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs") || [];
-        const taskInputs = vscode.workspace.getConfiguration("tasks").inspect("inputs") || [];
-        inputs = inputs.concat(launchInputs.workspaceValue as any[]);
-        inputs = inputs.concat(taskInputs.workspaceValue as any[]);
-        inputs = inputs.concat(taskInputs.globalValue as any[]);
+        const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs");
+        const taskInputs = vscode.workspace.getConfiguration("tasks").inspect("inputs");
+        inputs = inputs.concat(launchInputs?.workspaceValue || []);
+        inputs = inputs.concat(taskInputs?.workspaceValue || []);
+        inputs = inputs.concat(taskInputs?.globalValue || []);
 
         return inputs.filter(
             (input) => input && input.args && input.args.command == cmd && input.args.description == desc,
