@@ -46,11 +46,12 @@ export class VariableResolver {
 
     protected async bindCommandVariable(value: string): Promise<string> {
         const match = this.commandVarRegex.exec(value);
-        if (!match)
+        if (!match) {
             return '';
+        }
         const command = match[1];
-        const result = await vscode.commands.executeCommand(command) as string;
-        return result;
+        const result = await vscode.commands.executeCommand(command);
+        return result as string;
     }
 
     protected bindIndexedFolder(value: string): string {
@@ -58,11 +59,8 @@ export class VariableResolver {
             this.workspaceRegex,
             (_: string, index: string): string => {
                 const idx = Number.parseInt(index);
-                if (
-                    vscode.workspace.workspaceFolders !== undefined &&
-                    vscode.workspace.workspaceFolders![idx]
-                ) {
-                    return vscode.workspace.workspaceFolders![idx]!.uri.fsPath;
+                if (vscode.workspace.workspaceFolders?.[idx]) {
+                    return vscode.workspace.workspaceFolders?.[idx]?.uri.fsPath ?? '';
                 }
                 return '';
             },
@@ -72,34 +70,24 @@ export class VariableResolver {
     protected bindConfiguration(value: string): string {
         switch (value) {
             case 'workspaceFolder':
-                return vscode.workspace.workspaceFolders![0].uri.fsPath;
+                return vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? '';
             case 'workspaceFolderBasename':
-                return vscode.workspace.workspaceFolders![0].name;
+                return vscode.workspace.workspaceFolders?.[0].name ?? '';
             case 'fileBasenameNoExtension':
-                if (vscode.window.activeTextEditor !== null) {
-                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
-                    return filePath.name;
-                }
-                return '';
+                    return path.parse(vscode.window.activeTextEditor?.document.fileName ?? '').name;
             case 'fileBasename':
-                if (vscode.window.activeTextEditor !== null) {
-                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
-                    return filePath.base;
-                }
-                return '';
+                    return path.parse(vscode.window.activeTextEditor?.document.fileName ?? '').base;
             case 'file':
-                return (vscode.window.activeTextEditor !== null)
-                    ? vscode.window.activeTextEditor!.document.fileName
-                    : '';
+                return vscode.window.activeTextEditor?.document.fileName ?? '';
             case 'extension':
                 if (vscode.window.activeTextEditor !== null) {
-                    const filePath = path.parse(vscode.window.activeTextEditor!.document.fileName);
+                    const filePath = path.parse(vscode.window.activeTextEditor?.document.fileName ?? '');
                     return filePath.ext;
                 }
                 return '';
             case 'fileDirName':
                 return (vscode.window.activeTextEditor !== null)
-                    ? path.dirname(vscode.window.activeTextEditor!.document.uri.fsPath)
+                    ? path.dirname(vscode.window.activeTextEditor?.document.uri.fsPath ?? '')
                     : '';
         }
 
@@ -122,8 +110,8 @@ export class VariableResolver {
             return activeFolderResult;
         }
 
-        for (const w of vscode.workspace.workspaceFolders!) {
-            const currentFolderResult = vscode.workspace.getConfiguration("", w.uri).get(matchResult![1], '');
+        for (const w of vscode.workspace.workspaceFolders ?? []) {
+            const currentFolderResult = vscode.workspace.getConfiguration("", w.uri).get(matchResult[1] ?? '', '');
             if (currentFolderResult) {
                 return currentFolderResult;
             }

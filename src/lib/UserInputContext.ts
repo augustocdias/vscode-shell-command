@@ -1,6 +1,3 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-
 export class UserInputContext
 {
     protected recordedInputs: { [id: string] : string; } = {};

@@ -14,10 +14,10 @@ export class CommandHandler {
     protected inputId?: string;
 
     constructor(args: ShellCommandOptions, userInputContext: UserInputContext, context: vscode.ExtensionContext) {
-        if (!args.hasOwnProperty("command")) {
+        if (!Object.prototype.hasOwnProperty.call(args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
-        this.inputId = this.resolveCommandToInputId(args.command, args.description);
+        this.inputId = this.resolveCommandToInputId(args.command, args.taskId);
 
         this.userInputContext = userInputContext;
         this.args = args;
@@ -43,17 +43,17 @@ export class CommandHandler {
         }
 
         if (this.args.env !== undefined) {
-            for (const key in this.args.env!) {
-                if (this.args.env!.hasOwnProperty(key)) {
-                    this.args.env![key] =
-                        (await resolver.resolve(this.args.env![key], this.userInputContext)) || "";
+            for (const key in this.args.env ?? []) {
+                if (Object.prototype.hasOwnProperty.call(this.args.env, key)) {
+                    this.args.env[key] =
+                        (await resolver.resolve(this.args.env[key], this.userInputContext)) || "";
                 }
             }
         }
 
         this.args.cwd = this.args.cwd
-            ? await resolver.resolve(this.args.cwd!, this.userInputContext)
-            : vscode.workspace.workspaceFolders![0].uri.fsPath;
+            ? await resolver.resolve(this.args.cwd ?? '', this.userInputContext)
+            : vscode.workspace.workspaceFolders?.[0].uri.fsPath;
     }
 
     async handle() {
@@ -81,14 +81,14 @@ export class CommandHandler {
             maxBuffer: this.args.maxBuffer,
             //    shell: vscode.env.shell
         };
-        return subprocess.execSync(this.args.command!, options);
+        return subprocess.execSync(this.args.command, options);
     }
 
     protected parseResult(result: string): QuickPickItem[] {
         return result
             .split(this.EOL)
             .map<QuickPickItem>((value: string) => {
-                const values = value.trim().split(this.args.fieldSeparator!, 4);
+                const values = value.trim().split(this.args.fieldSeparator as string, 4);
                 return {
                     value: values[0],
                     label: values[1] ?? value,
@@ -96,7 +96,7 @@ export class CommandHandler {
                     detail: values[3],
                 }
             })
-            .filter((item: any) => item.label && item.label.trim().length > 0);
+            .filter((item: QuickPickItem) => item.label && item.label.trim().length > 0);
     }
 
     protected getDefault(id: string) {
@@ -116,8 +116,8 @@ export class CommandHandler {
                 };
             }) ?? [];
         }
-  
-        let defaultValue: string = '';
+
+        let defaultValue = '';
         if (this.args.rememberPrevious && this.args.taskId) {
             defaultValue = this.getDefault(this.args.taskId);
         }
@@ -137,9 +137,9 @@ export class CommandHandler {
                 picker.onDidAccept(() => {
                     disposable.dispose();
                 }),
-    
+
                 picker.onDidHide(() => {
-                    const didCancelQuickPickSession = picker?.selectedItems?.length == 0 ?? true;
+                    const didCancelQuickPickSession = picker?.selectedItems?.length === 0 ?? true;
                     if (didCancelQuickPickSession) {
                         this.userInputContext.reset();
                         resolve(undefined);
@@ -159,24 +159,24 @@ export class CommandHandler {
                 (item) =>
                     ({
                         label: item.label,
-                        description: item.label == defaultValue ? 'Default' : undefined,
+                        description: item.label === defaultValue ? 'Default' : undefined,
                     } as vscode.QuickPickItem),
             );
-    
+
             for (const item of picker.items) {
                 if (item.label === defaultValue) {
                     picker.activeItems = [item];
                     break;
                 }
             }
-    
+
             picker.show();
         });
     }
 
-    protected resolveCommandToInputId(cmd: string | undefined, desc: string | undefined) {
+    protected resolveCommandToInputId(cmd: string | undefined, taskId: string | undefined) {
         // Lookup the inputId from the supplied command input string
-        if (!cmd) return undefined;
+        if (!cmd) { return undefined; }
 
         let inputs: any[] = [];
         const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs");
@@ -186,7 +186,7 @@ export class CommandHandler {
         inputs = inputs.concat(taskInputs?.globalValue || []);
 
         return inputs.filter(
-            (input) => input && input.args && input.args.command == cmd && input.args.description == desc,
+            (input) => input?.args?.command === cmd && input?.args?.taskId === taskId,
         )[0]?.id;
     }
 }

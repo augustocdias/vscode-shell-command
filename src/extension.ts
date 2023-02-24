@@ -28,6 +28,3 @@ export function activate(this: any, context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.onDidStartDebugSession(() => userInputContext.reset()));
 
 }
-
-// this method is called when your extension is deactivated
-export function deactivate() {}

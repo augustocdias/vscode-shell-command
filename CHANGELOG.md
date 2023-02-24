@@ -3,6 +3,7 @@
 ## [1.8.0] - 2023-02-15
 
 - Added `rememberPrevious` option and force user to set the taskId if using rememberPrevious
+- Use `taskId` option to solve conflicts when multiple inputs have the same command
 
 ## [1.7.5] - 2022-11-10
 
