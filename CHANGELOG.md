@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.0] - 2023-02-15
+
+- Added `rememberPrevious` option and force user to set the taskId if using rememberPrevious
+
 ## [1.7.5] - 2022-11-10
 
 - Fix userInputContext auto reset invalid

@@ -9,7 +9,7 @@ export function activate(this: any, context: vscode.ExtensionContext) {
     const userInputContext = new UserInputContext();
     const callback = (args: ShellCommandOptions) => {
         try {
-            const handler = new CommandHandler(args, userInputContext);
+            const handler = new CommandHandler(args, userInputContext, context);
             return handler.handle();
         } catch (error) {
             const message = (error instanceof ShellCommandException)

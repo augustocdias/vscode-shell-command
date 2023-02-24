@@ -5,6 +5,7 @@ export interface ShellCommandOptions
     env: { [s: string]: string } | undefined;
     useFirstResult?: boolean;
     useSingleResult?: boolean;
+    rememberPrevious?: boolean;
     fieldSeparator?: string;
     description?: string;
     maxBuffer?: number;
