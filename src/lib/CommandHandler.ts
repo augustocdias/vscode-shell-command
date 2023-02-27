@@ -94,7 +94,7 @@ export class CommandHandler {
                     label: values[1] ?? value,
                     description: values[2],
                     detail: values[3],
-                }
+                };
             })
             .filter((item: QuickPickItem) => item.label && item.label.trim().length > 0);
     }
@@ -108,7 +108,7 @@ export class CommandHandler {
 	}
 
     protected async quickPick(input: QuickPickItem[]) {
-        if (input.length == 0) {
+        if (input.length === 0) {
             input = this.args.defaultOptions?.map(o => {
                 return {
                     value: o,
@@ -135,6 +135,7 @@ export class CommandHandler {
             const disposable = vscode.Disposable.from(
                 picker,
                 picker.onDidAccept(() => {
+                    resolve((picker.selectedItems[0] as QuickPickItem).value);
                     disposable.dispose();
                 }),
 
@@ -144,7 +145,7 @@ export class CommandHandler {
                         this.userInputContext.reset();
                         resolve(undefined);
                     } else if (this.inputId)  {
-                        const selection = picker.selectedItems[0].label;
+                        const selection = (picker.selectedItems[0] as QuickPickItem).value;
                         this.userInputContext.recordInput(this.inputId, selection);
                         if (this.args.rememberPrevious && this.args.taskId) {
                             this.setDefault(this.args.taskId, selection);
@@ -159,12 +160,14 @@ export class CommandHandler {
                 (item) =>
                     ({
                         label: item.label,
-                        description: item.label === defaultValue ? 'Default' : undefined,
+                        description: item.value === defaultValue ? `${item.description} (Default)` : item.description,
+                        detail: item.detail,
+                        value: item.value,
                     } as vscode.QuickPickItem),
             );
 
             for (const item of picker.items) {
-                if (item.label === defaultValue) {
+                if ((item as QuickPickItem).value === defaultValue) {
                     picker.activeItems = [item];
                     break;
                 }

@@ -21,10 +21,10 @@ export class VariableResolver {
                     return this.bindIndexedFolder(value);
                 }
                 if (this.configVarRegex.test(value)) {
-                    return this.bindWorkspaceConfigVariable(value)
+                    return this.bindWorkspaceConfigVariable(value);
                 }
                 if (this.envVarRegex.test(value)) {
-                    return this.bindEnvVariable(value)
+                    return this.bindEnvVariable(value);
                 }
                 if (userInputContext && this.inputVarRegex.test(value)) {
                     return this.bindInputVariable(value, userInputContext);
