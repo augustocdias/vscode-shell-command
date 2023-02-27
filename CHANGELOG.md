@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.1] - 2023-02-27
+
+- Fixed issue where the fieldSeparator was not properly resolved
+
 ## [1.8.0] - 2023-02-15
 
 - Added `rememberPrevious` option and force user to set the taskId if using rememberPrevious
