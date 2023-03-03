@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.2] - 2023-03-01
+
+- Fix broken multi root workspace support for input variables
+
 ## [1.8.1] - 2023-02-27
 
 - Fixed issue where the fieldSeparator was not properly resolved

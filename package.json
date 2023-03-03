@@ -1,59 +1,59 @@
 {
-    "name": "tasks-shell-input",
-    "displayName": "Tasks Shell Input",
-    "description": "Use shell commands as input for your tasks",
-    "icon": "icon.png",
-    "version": "1.8.1",
-    "publisher": "augustocdias",
-    "repository": {
-        "url": "https://github.com/augustocdias/vscode-shell-command"
+  "name": "tasks-shell-input",
+  "displayName": "Tasks Shell Input",
+  "description": "Use shell commands as input for your tasks",
+  "icon": "icon.png",
+  "version": "1.8.2",
+  "publisher": "augustocdias",
+  "repository": {
+    "url": "https://github.com/augustocdias/vscode-shell-command"
+  },
+  "engines": {
+    "vscode": "^1.37.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:shellCommand.execute"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "shellCommand.execute",
+          "when": "false"
+        }
+      ]
     },
-    "engines": {
-        "vscode": "^1.37.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "activationEvents": [
-        "onCommand:shellCommand.execute"
-    ],
-    "main": "./out/extension.js",
-    "contributes": {
-        "menus": {
-            "commandPalette": [
-                {
-                    "command": "shellCommand.execute",
-                    "when": "false"
-                }
-            ]
-        },
-        "commands": [
-            {
-                "command": "shellCommand.execute",
-                "title": "Execute shell command"
-            }
-        ]
-    },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "lintd": "eslint_d src --ext .ts",
-        "lint": "eslint src --ext .ts",
-        "lint:fix": "npm run lint -- --fix",
-        "lintd:fix": "npm run lintd -- --fix"
-    },
-    "devDependencies": {
-        "@types/glob": "^7.1.1",
-        "@types/mocha": "^5.2.7",
-        "@types/node": "^12.11.7",
-        "@types/vscode": "^1.37.0",
-        "@typescript-eslint/eslint-plugin": "^5.9.0",
-        "@typescript-eslint/parser": "^5.9.0",
-        "eslint": "^8.6.0",
-        "glob": "^7.1.5",
-        "mocha": "^9.2.2",
-        "typescript": "^3.9.10",
-        "vscode-test": "^1.2.2"
-    }
+    "commands": [
+      {
+        "command": "shellCommand.execute",
+        "title": "Execute shell command"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lintd": "eslint_d src --ext .ts",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "lintd:fix": "npm run lintd -- --fix"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.37.0",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
+    "eslint": "^8.6.0",
+    "glob": "^7.1.5",
+    "mocha": "^9.2.2",
+    "typescript": "^3.9.10",
+    "vscode-test": "^1.2.2"
+  }
 }
