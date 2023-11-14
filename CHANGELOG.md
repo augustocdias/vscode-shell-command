@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.4] - 2024-01-22
+
+- Add `defaultValue` variable
+
 ## [1.8.3] - 2023-11-14
 
 - Add `lineNumber` variable
