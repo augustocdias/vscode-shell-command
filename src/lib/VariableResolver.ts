@@ -79,6 +79,8 @@ export class VariableResolver {
                     return path.parse(vscode.window.activeTextEditor?.document.fileName ?? '').base;
             case 'file':
                 return vscode.window.activeTextEditor?.document.fileName ?? '';
+            case 'lineNumber':
+                return vscode.window.activeTextEditor?.selection.active.line.toString() ?? '';
             case 'extension':
                 if (vscode.window.activeTextEditor !== null) {
                     const filePath = path.parse(vscode.window.activeTextEditor?.document.fileName ?? '');

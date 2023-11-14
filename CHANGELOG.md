@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.3]
+
+- Add `lineNumber` variable
+
 ## [1.8.2] - 2023-03-01
 
 - Fix broken multi root workspace support for input variables

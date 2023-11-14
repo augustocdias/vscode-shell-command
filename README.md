@@ -98,7 +98,7 @@ Arguments for the extension:
 
 As of today, the extension supports variable substitution for:
 
-* a subset of predefined variables like `file`, `fileDirName`, `fileBasenameNoExtension`, `fileBasename`, `extension`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
+* a subset of predefined variables like `file`, `fileDirName`, `fileBasenameNoExtension`, `fileBasename`, `lineNumber`, `extension`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
 * input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
