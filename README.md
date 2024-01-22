@@ -1,4 +1,8 @@
-# Tasks: Shell Input
+# Tasks: Shell Input ngx
+
+**NOTE:** This is a fork of [augustocdias/vscode-shell-command](https://github.com/augustocdias/vscode-shell-command).
+@augustocdias if at any time you do not want this fork to exist, please just let me know.
+For context, please see [here](https://github.com/augustocdias/vscode-shell-command/pull/68).
 
 This extension aims to extend the possibilities of [input](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) in task execution. Currently, VSCode supports 3 types of inputs for your tasks:
 
