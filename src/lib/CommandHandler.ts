@@ -208,7 +208,7 @@ export class CommandHandler {
         inputs = inputs.concat(taskInputs?.globalValue || []);
 
         return inputs.filter(
-            (input) => this.command === cmd && input?.args?.taskId === taskId,
+            (input) => input?.args?.command === cmd && input?.args?.taskId === taskId,
         )[0]?.id;
     }
 }
