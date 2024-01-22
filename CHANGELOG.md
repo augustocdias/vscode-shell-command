@@ -3,6 +3,7 @@
 ## [1.8.4] - 2024-01-22
 
 - Add `defaultValue` variable
+- Support command as array of string
 
 ## [1.8.3] - 2023-11-14
 
