@@ -25,9 +25,9 @@ export class CommandHandler {
     }
 
     protected async resolveArgs() {
-        const resolver = new VariableResolver();
+        const resolver = new VariableResolver(this.userInputContext, this.getDefault());
 
-        const command = await resolver.resolve(this.args.command, this.userInputContext);
+        const command = await resolver.resolve(this.args.command);
         if (command === undefined) {
             throw new ShellCommandException(
                 "Your command is badly formatted and variables could not be resolved",
@@ -45,14 +45,13 @@ export class CommandHandler {
         if (this.args.env !== undefined) {
             for (const key in this.args.env ?? []) {
                 if (Object.prototype.hasOwnProperty.call(this.args.env, key)) {
-                    this.args.env[key] =
-                        (await resolver.resolve(this.args.env[key], this.userInputContext)) || "";
+                    this.args.env[key] = (await resolver.resolve(this.args.env[key])) || "";
                 }
             }
         }
 
         this.args.cwd = this.args.cwd
-            ? await resolver.resolve(this.args.cwd ?? '', this.userInputContext)
+            ? await resolver.resolve(this.args.cwd ?? '')
             : vscode.workspace.workspaceFolders?.[0].uri.fsPath;
     }
 
@@ -99,8 +98,10 @@ export class CommandHandler {
             .filter((item: QuickPickItem) => item.label && item.label.trim().length > 0);
     }
 
-    protected getDefault(id: string) {
-		return this.context.workspaceState.get<string>(id, "");
+    protected getDefault() {
+        if (this.args.rememberPrevious && this.args.taskId) {
+            return this.context.workspaceState.get<string>(this.args.taskId, "");
+        }
 	}
 
 	protected async setDefault(id: string, value: string) {
@@ -117,10 +118,7 @@ export class CommandHandler {
             }) ?? [];
         }
 
-        let defaultValue = '';
-        if (this.args.rememberPrevious && this.args.taskId) {
-            defaultValue = this.getDefault(this.args.taskId);
-        }
+        const defaultValue = this.getDefault();
 
         return new Promise<string | undefined>((resolve) => {
             const picker = vscode.window.createQuickPick();
