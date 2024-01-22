@@ -3,7 +3,7 @@
   "displayName": "Tasks Shell Input ngx",
   "description": "Use shell commands as input for your tasks",
   "icon": "icon.png",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "publisher": "MarcelRobitaille",
   "repository": {
     "url": "https://github.com/MarcelRobitaille/vscode-shell-command-ngx"
