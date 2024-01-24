@@ -84,7 +84,7 @@ VSCode renders it like this:
 
 Arguments for the extension:
 
-* command: the system command to be executed (must be in PATH)
+* command: the system command to be executed (must be in PATH, string or array of string)
 * cwd: the directory from within it will be executed
 * env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
