@@ -2,19 +2,35 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { UserInputContext } from './UserInputContext';
 
+export type Input = {
+    args: {
+        taskId: string;
+        command: string | string[];
+        cwd: string;
+        env: Record<string, string>;
+    },
+    id: string;
+    type: string;
+    workspaceIndex: number;
+}
+
 export class VariableResolver {
     protected expressionRegex = /\$\{(.*?)\}/gm;
-    protected workspaceRegex = /workspaceFolder\[(\d+)\]/gm;
+    protected workspaceIndexedRegex = /workspaceFolder\[(\d+)\]/gm;
+    protected workspaceNamedRegex = /workspaceFolder:([^}]+)/gm;
     protected configVarRegex = /config:(.+)/m;
     protected envVarRegex = /env:(.+)/m;
     protected inputVarRegex = /input:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
     protected rememberedValue?: string;
     protected userInputContext?: UserInputContext;
+    protected input: Input;
 
-    constructor(userInputContext?: UserInputContext, rememberedValue?: string) {
-       this.userInputContext = userInputContext; 
+    constructor(input: Input, userInputContext?: UserInputContext,
+                rememberedValue?: string) {
+       this.userInputContext = userInputContext;
        this.rememberedValue = rememberedValue;
+       this.input = input;
     }
 
     async resolve(str: string): Promise<string | undefined> {
@@ -24,8 +40,11 @@ export class VariableResolver {
         let result = str.replace(
             this.expressionRegex,
             (_: string, value: string): string => {
-                if (this.workspaceRegex.test(value)) {
+                if (this.workspaceIndexedRegex.test(value)) {
                     return this.bindIndexedFolder(value);
+                }
+                if (this.workspaceNamedRegex.test(value)) {
+                    return this.bindNamedFolder(value);
                 }
                 if (this.configVarRegex.test(value)) {
                     return this.bindWorkspaceConfigVariable(value);
@@ -63,11 +82,22 @@ export class VariableResolver {
 
     protected bindIndexedFolder(value: string): string {
         return value.replace(
-            this.workspaceRegex,
+            this.workspaceIndexedRegex,
             (_: string, index: string): string => {
                 const idx = Number.parseInt(index);
-                if (vscode.workspace.workspaceFolders?.[idx]) {
-                    return vscode.workspace.workspaceFolders?.[idx]?.uri.fsPath ?? '';
+                return vscode.workspace.workspaceFolders?.[idx]?.uri.fsPath ?? '';
+            },
+        );
+    }
+
+    protected bindNamedFolder(value: string): string {
+        return value.replace(
+            this.workspaceNamedRegex,
+            (_: string, name: string): string => {
+                for (const folder of vscode.workspace.workspaceFolders ?? []) {
+                    if (folder.name == name) {
+                        return folder.uri.fsPath;
+                    }
                 }
                 return '';
             },
@@ -77,9 +107,9 @@ export class VariableResolver {
     protected bindConfiguration(value: string): string {
         switch (value) {
             case 'workspaceFolder':
-                return vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? '';
+                return vscode.workspace.workspaceFolders?.[this.input.workspaceIndex].uri.fsPath ?? '';
             case 'workspaceFolderBasename':
-                return vscode.workspace.workspaceFolders?.[0].name ?? '';
+                return vscode.workspace.workspaceFolders?.[this.input.workspaceIndex].name ?? '';
             case 'fileBasenameNoExtension':
                     return path.parse(vscode.window.activeTextEditor?.document.fileName ?? '').name;
             case 'fileBasename':

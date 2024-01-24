@@ -4,6 +4,9 @@
 
 - Add `defaultValue` variable
 - Support command as array of string
+- Better support for multi-folder workspaces
+    - Make `${workspaceFolder}` resolve to the folder in which the task is defined, not the default folder.
+    - Support `${workspaceFolder:name}`
 
 ## [1.8.3] - 2023-11-14
 
