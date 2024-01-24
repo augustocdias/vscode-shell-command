@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as subprocess from "child_process";
 import { ShellCommandOptions } from "./ShellCommandOptions";
-import { VariableResolver } from "./VariableResolver";
+import { VariableResolver, Input } from "./VariableResolver";
 import { ShellCommandException } from "../util/exceptions";
 import { UserInputContext } from "./UserInputContext";
 import { QuickPickItem } from "./QuickPickItem";
@@ -11,7 +11,7 @@ export class CommandHandler {
     protected EOL = /\r\n|\r|\n/;
     protected context: vscode.ExtensionContext;
     protected userInputContext: UserInputContext;
-    protected inputId?: string;
+    protected input: Input;
     protected command: string;
 
     constructor(args: ShellCommandOptions, userInputContext: UserInputContext, context: vscode.ExtensionContext) {
@@ -23,12 +23,12 @@ export class CommandHandler {
             ? args.command.join(' ')
             : args.command;
 
-        if (typeof command !== 'string') {
+        if (typeof command !== "string") {
             throw new ShellCommandException(`The "command" property should be a string or an array of string but got "${typeof args.command}".`);
         }
 
         this.command = command;
-        this.inputId = this.resolveCommandToInputId(command, args.taskId);
+        this.input = this.resolveTaskToInput(args.taskId);
 
         this.userInputContext = userInputContext;
         this.args = args;
@@ -36,7 +36,8 @@ export class CommandHandler {
     }
 
     protected async resolveArgs() {
-        const resolver = new VariableResolver(this.userInputContext, this.getDefault());
+        const resolver = new VariableResolver(
+            this.input, this.userInputContext, this.getDefault());
 
         const command = await resolver.resolve(this.command);
         if (command === undefined) {
@@ -47,7 +48,7 @@ export class CommandHandler {
             this.command = command;
         }
 
-        if (this.args.rememberPrevious && this.args.taskId == undefined) {
+        if (this.args.rememberPrevious && this.args.taskId === undefined) {
             throw new ShellCommandException(
                 "You need to specify a taskId when using rememberPrevious=true",
             );
@@ -63,7 +64,7 @@ export class CommandHandler {
 
         this.args.cwd = this.args.cwd
             ? await resolver.resolve(this.args.cwd ?? '')
-            : vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+            : vscode.workspace.workspaceFolders?.[this.input.workspaceIndex].uri.fsPath;
     }
 
     async handle() {
@@ -74,8 +75,8 @@ export class CommandHandler {
         const useFirstResult =
             this.args.useFirstResult || (this.args.useSingleResult && nonEmptyInput.length === 1);
         if (useFirstResult) {
-            if (this.inputId && this.userInputContext) {
-                this.userInputContext.recordInput(this.inputId, nonEmptyInput[0].value);
+            if (this.input.id && this.userInputContext) {
+                this.userInputContext.recordInput(this.input.id, nonEmptyInput[0].value);
             }
             return nonEmptyInput[0].value;
         } else {
@@ -153,9 +154,9 @@ export class CommandHandler {
                     if (didCancelQuickPickSession) {
                         this.userInputContext.reset();
                         resolve(undefined);
-                    } else if (this.inputId)  {
+                    } else if (this.input.id)  {
                         const selection = (picker.selectedItems[0] as QuickPickItem).value;
-                        this.userInputContext.recordInput(this.inputId, selection);
+                        this.userInputContext.recordInput(this.input.id, selection);
                         if (this.args.rememberPrevious && this.args.taskId) {
                             this.setDefault(this.args.taskId, selection);
                         }
@@ -186,27 +187,38 @@ export class CommandHandler {
         });
     }
 
-    protected resolveCommandToInputId(cmd: string, taskId: string | undefined) {
-        // Lookup the inputId from the supplied command input string
-        let inputs: any[] = [];
-        if (vscode.workspace.workspaceFolders) {
-            vscode.workspace.workspaceFolders?.forEach(function (folder) {
-                const launchInputs = vscode.workspace.getConfiguration("launch", folder.uri).inspect("inputs");
-                const taskInputs = vscode.workspace.getConfiguration("tasks", folder.uri).inspect("inputs");
-                inputs = inputs.concat(launchInputs?.workspaceFolderValue || []);
-                inputs = inputs.concat(taskInputs?.workspaceFolderValue || []);
-            });
+    protected resolveTaskToInput(taskId: string | undefined) {
+        function* getSectionInputs(section: "launch" | "tasks", folder?: vscode.WorkspaceFolder) {
+            const keys = folder
+                ? ["workspaceFolderValue"] as const
+                : ["workspaceValue", "globalValue"] as const;
+
+            for (const key of keys) {
+                const conf = vscode.workspace.getConfiguration(section, folder?.uri);
+                for (const input of conf.inspect<Input[]>("inputs")?.[key] || []) {
+                    // Yield the input and assign the workspaceIndex.
+                    yield { ...input, workspaceIndex: folder?.index ?? 0 }
+                }
+            }
         }
 
-        const launchInputs = vscode.workspace.getConfiguration("launch").inspect("inputs");
-        const taskInputs = vscode.workspace.getConfiguration("tasks").inspect("inputs");
-        inputs = inputs.concat(launchInputs?.workspaceValue || []);
-        inputs = inputs.concat(launchInputs?.globalValue || []);
-        inputs = inputs.concat(taskInputs?.workspaceValue || []);
-        inputs = inputs.concat(taskInputs?.globalValue || []);
+        function* getAllInputs() {
+            for (const folder of vscode.workspace.workspaceFolders ?? []) {
+                yield* getSectionInputs("launch", folder);
+                yield* getSectionInputs("tasks", folder);
+            }
+            yield* getSectionInputs("launch");
+            yield* getSectionInputs("tasks");
+        }
 
-        return inputs.filter(
-            (input) => input?.args?.command === cmd && input?.args?.taskId === taskId,
-        )[0]?.id;
+        // Go through the generator and return the first match
+        for (const input of getAllInputs()) {
+            if (input?.args?.command === this.command &&
+                input?.args?.taskId === taskId) {
+                return input;
+            }
+        }
+
+        throw new ShellCommandException(`Could not find input with command '${this.command}' and taskId '${taskId}'.`);
     }
 }

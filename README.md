@@ -104,6 +104,7 @@ As of today, the extension supports variable substitution for:
 * all environment variables, pattern: `${env:variable}`
 * input variables which have been defined with `shellCommand.execute`, pattern: `${input:variable}` (limited supported see below for usage)
 * Support for ${command:...} pattern, for example to extract CMake's build directory using `${command:cmake.buildDirectory}`.
+* multi-folder workspace support: `${workspaceFolder}` (the folder whose `.vscode/tasks.json` defined the given task), `${workspaceFolder[1]}` (a specific folder by index), and `${workspaceFolder:name}` (a specific folder by name)
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
 
