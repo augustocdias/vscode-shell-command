@@ -2,9 +2,9 @@
 
 This extension aims to extend the possibilities of [input](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) in task execution. Currently, VSCode supports 3 types of inputs for your tasks:
 
-* promptString
-* pickString
-* Command
+* `promptString`
+* `pickString`
+* `command`
 
 None of them allows to get an input from a system command for example. This extension executes a shell command in your OS and each line of the output will be used as a possible input for your task.
 
@@ -12,7 +12,7 @@ Usage example:
 
 ![Extension Demo](https://github.com/augustocdias/vscode-shell-command/raw/master/demo.gif)
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -52,7 +52,7 @@ Here, `<value>` is what is returned as input variable and is not shown in the UI
 
 Next example shows a process picker very similar to the built-in `${command:pickProcess}`:
 
-```
+```json
 {
   "version": "2.0.0",
   "tasks": [
@@ -84,17 +84,17 @@ VSCode renders it like this:
 
 Arguments for the extension:
 
-* command: the system command to be executed (must be in PATH, string or array of string)
-* cwd: the directory from within it will be executed
-* env: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
-* useFirstResult: skip 'Quick Pick' dialog and use first result returned from the command
-* useSingleResult: skip 'Quick Pick' dialog and use the single result if only one returned from the command
-* rememberPrevious: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskId to be set**)
-* taskId: Unique id to use for storing the last-used value.
-* fieldSeparator: the string that separates `value`, `label`, `description` and `detail` fields
-* description: shown as a placeholder in 'Quick Pick', provides context for the input
-* maxBuffer: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
-* defaultOptions: if the command doesn't return anything, the list provided will be set for the user to choose from
+* `command`: the system command to be executed (must be in PATH, string or array of string)
+* `cwd`: the directory from within it will be executed
+* `env`: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
+* `useFirstResult`: skip 'Quick Pick' dialog and use first result returned from the command
+* `useSingleResult`: skip 'Quick Pick' dialog and use the single result if only one returned from the command
+* `rememberPrevious`: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskId to be set**)
+* `taskId`: Unique id to use for storing the last-used value.
+* `fieldSeparator`: the string that separates `value`, `label`, `description` and `detail` fields
+* `description`: shown as a placeholder in 'Quick Pick', provides context for the input
+* `maxBuffer`: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
+* `defaultOptions`: if the command doesn't return anything, the list provided will be set for the user to choose from
 
 As of today, the extension supports variable substitution for:
 
@@ -102,7 +102,7 @@ As of today, the extension supports variable substitution for:
 * the remembered value (the default value when `rememberPrevious` is true), available as `${rememberedValue}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables, pattern: `${env:variable}`
-* input variables which have been defined with shellCommand.execute, pattern: `${input:variable}` (limited supported see below for usage)
+* input variables which have been defined with `shellCommand.execute`, pattern: `${input:variable}` (limited supported see below for usage)
 * Support for ${command:...} pattern, for example to extract CMake's build directory using `${command:cmake.buildDirectory}`.
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
@@ -151,6 +151,10 @@ There are a few limitations to be aware of:
 * within an input command arg you can only reference other inputs defined with `shellCommand.execute`
 * ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
 
-# Misc
+## Developing and contributing
+
+Please see [./CONTRIBUTING.md](./CONTRIBUTING.md) for documentation on developing this extension.
+
+## Misc
 
 [Icon created by Eucalyp - Flaticon](https://www.flaticon.com/)
