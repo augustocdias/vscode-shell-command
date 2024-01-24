@@ -12,12 +12,23 @@ export class CommandHandler {
     protected context: vscode.ExtensionContext;
     protected userInputContext: UserInputContext;
     protected inputId?: string;
+    protected command: string;
 
     constructor(args: ShellCommandOptions, userInputContext: UserInputContext, context: vscode.ExtensionContext) {
         if (!Object.prototype.hasOwnProperty.call(args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
-        this.inputId = this.resolveCommandToInputId(args.command, args.taskId);
+
+        const command = Array.isArray(args.command)
+            ? args.command.join(' ')
+            : args.command;
+
+        if (typeof command !== 'string') {
+            throw new ShellCommandException(`The "command" property should be a string or an array of string but got "${typeof args.command}".`);
+        }
+
+        this.command = command;
+        this.inputId = this.resolveCommandToInputId(command, args.taskId);
 
         this.userInputContext = userInputContext;
         this.args = args;
@@ -27,13 +38,13 @@ export class CommandHandler {
     protected async resolveArgs() {
         const resolver = new VariableResolver(this.userInputContext, this.getDefault());
 
-        const command = await resolver.resolve(this.args.command);
+        const command = await resolver.resolve(this.command);
         if (command === undefined) {
             throw new ShellCommandException(
                 "Your command is badly formatted and variables could not be resolved",
             );
         } else {
-            this.args.command = command;
+            this.command = command;
         }
 
         if (this.args.rememberPrevious && this.args.taskId == undefined) {
@@ -80,7 +91,7 @@ export class CommandHandler {
             maxBuffer: this.args.maxBuffer,
             //    shell: vscode.env.shell
         };
-        return subprocess.execSync(this.args.command, options);
+        return subprocess.execSync(this.command, options);
     }
 
     protected parseResult(result: string): QuickPickItem[] {
@@ -175,10 +186,8 @@ export class CommandHandler {
         });
     }
 
-    protected resolveCommandToInputId(cmd: string | undefined, taskId: string | undefined) {
+    protected resolveCommandToInputId(cmd: string, taskId: string | undefined) {
         // Lookup the inputId from the supplied command input string
-        if (!cmd) { return undefined; }
-
         let inputs: any[] = [];
         if (vscode.workspace.workspaceFolders) {
             vscode.workspace.workspaceFolders?.forEach(function (folder) {
