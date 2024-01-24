@@ -9,8 +9,15 @@ export class VariableResolver {
     protected envVarRegex = /env:(.+)/m;
     protected inputVarRegex = /input:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
+    protected rememberedValue?: string;
+    protected userInputContext?: UserInputContext;
 
-    async resolve(str: string, userInputContext?: UserInputContext): Promise<string | undefined> {
+    constructor(userInputContext?: UserInputContext, rememberedValue?: string) {
+       this.userInputContext = userInputContext; 
+       this.rememberedValue = rememberedValue;
+    }
+
+    async resolve(str: string): Promise<string | undefined> {
         const promises: Promise<string | undefined>[] = [];
 
         // Process the synchronous string interpolations
@@ -26,8 +33,8 @@ export class VariableResolver {
                 if (this.envVarRegex.test(value)) {
                     return this.bindEnvVariable(value);
                 }
-                if (userInputContext && this.inputVarRegex.test(value)) {
-                    return this.bindInputVariable(value, userInputContext);
+                if (this.userInputContext && this.inputVarRegex.test(value)) {
+                    return this.bindInputVariable(value, this.userInputContext);
                 }
                 if (this.commandVarRegex.test(value)) {
                     // We don't replace these yet, they have to be done asynchronously
@@ -91,6 +98,8 @@ export class VariableResolver {
                 return (vscode.window.activeTextEditor !== null)
                     ? path.dirname(vscode.window.activeTextEditor?.document.uri.fsPath ?? '')
                     : '';
+            case 'rememberedValue':
+                return this.rememberedValue ?? '';
         }
 
         return '';
