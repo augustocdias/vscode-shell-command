@@ -12,6 +12,7 @@ export type Input = {
     id: string;
     type: string;
     workspaceIndex: number;
+    env: Record<string, string>;
 }
 
 export class VariableResolver {
@@ -165,8 +166,10 @@ export class VariableResolver {
         if (!result) {
             return '';
         }
+        const key = result[1];
+        const configuredEnv = this.input.env;
 
-        return process.env[result[1]] || '';
+        return configuredEnv[key] ?? process.env[key] ?? '';
     }
 
     protected bindInputVariable(value: string, userInputContext: UserInputContext): string {

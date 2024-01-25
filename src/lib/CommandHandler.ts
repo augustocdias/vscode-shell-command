@@ -195,9 +195,10 @@ export class CommandHandler {
 
             for (const key of keys) {
                 const conf = vscode.workspace.getConfiguration(section, folder?.uri);
+                const env = conf.inspect<{ env: Record<string, string> }>("options")?.[key]?.env ?? {};
                 for (const input of conf.inspect<Input[]>("inputs")?.[key] || []) {
                     // Yield the input and assign the workspaceIndex.
-                    yield { ...input, workspaceIndex: folder?.index ?? 0 }
+                    yield { ...input, workspaceIndex: folder?.index ?? 0, env }
                 }
             }
         }

@@ -7,6 +7,7 @@
 - Better support for multi-folder workspaces
     - Make `${workspaceFolder}` resolve to the folder in which the task is defined, not the default folder.
     - Support `${workspaceFolder:name}`
+- Add support for `tasks.json` `options.env` object
 
 ## [1.8.3] - 2023-11-14
 
