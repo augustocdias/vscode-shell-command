@@ -1,16 +1,13 @@
 # Change Log
 
-## [1.8.4] - 2024-01-22
+## [1.9.0] - 2024-01-26
 
 - Add `defaultValue` variable
 - Support command as array of string
 - Better support for multi-folder workspaces
-    - Make `${workspaceFolder}` resolve to the folder in which the task is defined, not the default folder.
-    - Support `${workspaceFolder:name}`
+  - Make `${workspaceFolder}` resolve to the folder in which the task is defined, not the default folder.
+  - Support `${workspaceFolder:name}`
 - Add support for `tasks.json` `options.env` object
-
-## [1.8.3] - 2023-11-14
-
 - Add `lineNumber` variable
 
 ## [1.8.2] - 2023-03-01
