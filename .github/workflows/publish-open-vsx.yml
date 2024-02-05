@@ -1,9 +1,10 @@
 on:
+  workflow_dispatch:
   push:
     tags:
       - "*"
 
-name: Deploy Extension
+name: Deploy Extension to Open VSX
 jobs:
   deploy:
     runs-on: ubuntu-latest
