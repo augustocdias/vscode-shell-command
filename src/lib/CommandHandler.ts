@@ -192,13 +192,13 @@ export class CommandHandler {
         // Find all objects where command is shellCommand.execute nested anywhere in the input object.
         // It could be that the actual input being run is nested inside an input from another extension.
         // See https://github.com/augustocdias/vscode-shell-command/issues/79
-        function *deepSearch(obj: any): Generator<Input> {
-            if (obj.command === "shellCommand.execute") {
-                yield obj;
+        function *deepSearch(obj: { command?: string, [x: string]: any }): Generator<Input> {
+            if (obj?.command === "shellCommand.execute") {
+                yield obj as Input;
             }
-            for (let key in obj) {
-                if (typeof obj[key] === 'object') {
-                    yield* deepSearch(obj[key]);
+            for (const value in Object.values(obj)) {
+                if (typeof value === 'object') {
+                    yield* deepSearch(value);
                 }
             }
         }

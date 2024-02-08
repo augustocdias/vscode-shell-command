@@ -3,6 +3,7 @@ import * as path from 'path';
 import { UserInputContext } from './UserInputContext';
 
 export type Input = {
+    command: "shellCommand.execute";
     args: {
         taskId: string;
         command: string | string[];
