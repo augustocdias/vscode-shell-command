@@ -188,6 +188,21 @@ export class CommandHandler {
     }
 
     protected resolveTaskToInput(taskId: string | undefined) {
+
+        // Find all objects where command is shellCommand.execute nested anywhere in the input object.
+        // It could be that the actual input being run is nested inside an input from another extension.
+        // See https://github.com/augustocdias/vscode-shell-command/issues/79
+        function *deepSearch(obj: any): Generator<Input> {
+            if (obj.command === "shellCommand.execute") {
+                yield obj;
+            }
+            for (let key in obj) {
+                if (typeof obj[key] === 'object') {
+                    yield* deepSearch(obj[key]);
+                }
+            }
+        }
+
         function* getSectionInputs(section: "launch" | "tasks", folder?: vscode.WorkspaceFolder) {
             const keys = folder
                 ? ["workspaceFolderValue"] as const
@@ -197,8 +212,12 @@ export class CommandHandler {
                 const conf = vscode.workspace.getConfiguration(section, folder?.uri);
                 const env = conf.inspect<{ env: Record<string, string> }>("options")?.[key]?.env ?? {};
                 for (const input of conf.inspect<Input[]>("inputs")?.[key] || []) {
-                    // Yield the input and assign the workspaceIndex.
-                    yield { ...input, workspaceIndex: folder?.index ?? 0, env }
+
+                    // Go through all the nested shellCommand.execute inputs.
+                    for (const shellInput of deepSearch(input)) {
+                        // Yield the input and assign the workspaceIndex.
+                        yield { ...shellInput, workspaceIndex: folder?.index ?? 0, env }
+                    }
                 }
             }
         }
