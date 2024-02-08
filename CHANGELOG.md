@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.9.1] - 2024-02-08
+
+- Fix bug introduced in 1.9.0: #79
+
 ## [1.9.0] - 2024-01-26
 
 - Add `defaultValue` variable
