@@ -19,15 +19,17 @@ export class CommandHandler {
             throw new ShellCommandException('Please specify the "command" property.');
         }
 
-        const command = Array.isArray(args.command)
-            ? args.command.join(' ')
-            : args.command;
+        const command = CommandHandler.resolveCommand(args.command)
 
         if (typeof command !== "string") {
-            throw new ShellCommandException(`The "command" property should be a string or an array of string but got "${typeof args.command}".`);
+            throw new ShellCommandException(
+                'The "command" property should be a string or an array of ' +
+                `string but got "${typeof args.command}".`
+            );
         }
 
         this.command = command;
+
         this.input = this.resolveTaskToInput(args.taskId);
 
         this.userInputContext = userInputContext;
@@ -187,6 +189,11 @@ export class CommandHandler {
         });
     }
 
+    // The command can be given as a string or array of strings.
+    static resolveCommand(command: unknown) {
+        return Array.isArray(command) ? command.join(' ') : command;
+    }
+
     protected resolveTaskToInput(taskId: string | undefined) {
 
         // Find all objects where command is shellCommand.execute nested anywhere in the input object.
@@ -233,8 +240,8 @@ export class CommandHandler {
 
         // Go through the generator and return the first match
         for (const input of getAllInputs()) {
-            if (input?.args?.command === this.command &&
-                input?.args?.taskId === taskId) {
+            const command = CommandHandler.resolveCommand(input?.args?.command);
+            if (command === this.command && input?.args?.taskId === taskId) {
                 return input;
             }
         }

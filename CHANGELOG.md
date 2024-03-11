@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.9.2] - 2024-03-11
+
+- Fix bug bug with command as array of args introduced in #74
+
 ## [1.9.1] - 2024-02-08
 
 - Fix bug introduced in 1.9.0: #79
