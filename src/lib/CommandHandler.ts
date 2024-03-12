@@ -203,7 +203,7 @@ export class CommandHandler {
             if (obj?.command === "shellCommand.execute") {
                 yield obj as Input;
             }
-            for (const value in Object.values(obj)) {
+            for (const value of Object.values(obj)) {
                 if (typeof value === 'object') {
                     yield* deepSearch(value);
                 }
