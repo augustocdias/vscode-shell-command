@@ -7,6 +7,7 @@ export type Input = {
     args: {
         taskId: string;
         command: string | string[];
+        commandArgs: string[] | undefined;
         cwd: string;
         env: Record<string, string>;
     },

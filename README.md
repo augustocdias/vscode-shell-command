@@ -84,7 +84,8 @@ VSCode renders it like this:
 
 Arguments for the extension:
 
-* `command`: the system command to be executed (must be in PATH, string or array of string)
+* `command`: the system command to be executed (must be in PATH). If given as an array, the elements are joined by spaces.
+* `commandArgs`: if provided, `command` is interpreted as the binary to run and `commandArgs` are the arguments. This is useful if the binary you want to run has spaces (like `C:\Program Files\*`). This translates to `child_process.execFileSync(command, commandArgs)`.
 * `cwd`: the directory from within it will be executed
 * `env`: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * `useFirstResult`: skip 'Quick Pick' dialog and use first result returned from the command
@@ -137,6 +138,33 @@ Dependent Input Variables Usage example:
                 "command": "shellCommand.execute",
                 "args": {
                     "command": "ls -1a ${input:rootDir}"
+                }
+            }
+        ]
+    }
+}
+```
+
+Example with `commandArgs`:
+```json
+{
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Example with commandArgs",
+                "command": "echo ${input:testInput}",
+                "type": "shell"
+            }
+        ],
+        "inputs": [
+            {
+                "id": "testInput",
+                "type": "command",
+                "command": "shellCommand.execute",
+                "args": {
+                    "command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
+                    "commandArgs": ["-E", "cat", "test-environment"]
                 }
             }
         ]
