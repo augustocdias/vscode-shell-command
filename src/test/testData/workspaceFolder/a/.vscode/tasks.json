@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Test task",
+            "type": "shell",
+            "command": "echo ${input:a_workspaceFolder} ${input:a_indexedWorkspaceFolder0} ${input:a_indexedWorkspaceFolder1} ${input:a_namedWorkspaceFolderA} ${input:a_namedWorkspaceFolderB}"
+        }
+    ],
+    "inputs": [
+      {
+        "id": "a_workspaceFolder",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            "taskId": "a_workspaceFolder",
+            "command": "echo ${workspaceFolder}",
+            "useFirstResult": true
+        }
+      },
+      {
+        "id": "a_indexedWorkspaceFolder0",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            "taskId": "a_indexedWorkspaceFolder0",
+            "command": "echo ${workspaceFolder[0]}",
+            "useFirstResult": true
+        }
+      },
+      {
+        "id": "a_indexedWorkspaceFolder1",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            "taskId": "a_indexedWorkspaceFolder1",
+            "command": "echo ${workspaceFolder[1]}",
+            "useFirstResult": true
+        }
+      },
+      {
+        "id": "a_namedWorkspaceFolderA",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            "taskId": "a_namedWorkspaceFolderA",
+            "command": "echo ${workspaceFolder:a}",
+            "useFirstResult": true
+        }
+      },
+      {
+        "id": "a_namedWorkspaceFolderB",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            "taskId": "a_namedWorkspaceFolderB",
+            "command": "echo ${workspaceFolder:b}",
+            "useFirstResult": true
+        }
+      }
+    ]
+  }

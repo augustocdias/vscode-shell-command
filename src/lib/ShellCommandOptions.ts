@@ -1,8 +1,8 @@
 export interface ShellCommandOptions
 {
-    cwd: string | undefined;
+    cwd?: string;
     command: unknown;
-    env: { [s: string]: string } | undefined;
+    env?: { [s: string]: string };
     useFirstResult?: boolean;
     useSingleResult?: boolean;
     rememberPrevious?: boolean;
