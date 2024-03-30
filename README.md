@@ -112,35 +112,33 @@ Dependent Input Variables Usage example:
 
 ```json
 {
-    "tasks": {
-        "version": "2.0.0",
-        "tasks": [
-            {
-                "label": "Nested input",
-                "command": "ls ${input:rootDir}/${input:childDir}",
-                "type": "shell",
-                "problemMatcher": []
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Nested input",
+            "command": "ls ${input:rootDir}/${input:childDir}",
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rootDir",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "ls -1a"
             }
-        ],
-        "inputs": [
-            {
-                "id": "rootDir",
-                "type": "command",
-                "command": "shellCommand.execute",
-                "args": {
-                    "command": "ls -1a"
-                }
-            },
-            {
-                "id": "childDir",
-                "type": "command",
-                "command": "shellCommand.execute",
-                "args": {
-                    "command": "ls -1a ${input:rootDir}"
-                }
+        },
+        {
+            "id": "childDir",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "ls -1a ${input:rootDir}"
             }
-        ]
-    }
+        }
+    ]
 }
 ```
 
