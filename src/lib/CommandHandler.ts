@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as subprocess from "child_process";
+import * as child_process from "child_process";
 import { ShellCommandOptions } from "./ShellCommandOptions";
 import { VariableResolver, Input } from "./VariableResolver";
 import { ShellCommandException } from "../util/exceptions";
@@ -13,13 +13,18 @@ export class CommandHandler {
     protected userInputContext: UserInputContext;
     protected input: Input;
     protected command: string;
+    protected subprocess: typeof child_process;
 
-    constructor(args: ShellCommandOptions, userInputContext: UserInputContext, context: vscode.ExtensionContext) {
+    constructor(args: ShellCommandOptions,
+                userInputContext: UserInputContext,
+                context: vscode.ExtensionContext,
+                subprocess: typeof child_process,
+    ) {
         if (!Object.prototype.hasOwnProperty.call(args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
 
-        const command = CommandHandler.resolveCommand(args.command)
+        const command = CommandHandler.resolveCommand(args.command);
 
         if (typeof command !== "string") {
             throw new ShellCommandException(
@@ -35,6 +40,7 @@ export class CommandHandler {
         this.userInputContext = userInputContext;
         this.args = args;
         this.context = context;
+        this.subprocess = subprocess;
     }
 
     protected async resolveArgs() {
@@ -87,14 +93,14 @@ export class CommandHandler {
     }
 
     protected runCommand() {
-        const options: subprocess.ExecSyncOptionsWithStringEncoding = {
+        const options: child_process.ExecSyncOptionsWithStringEncoding = {
             encoding: "utf8",
             cwd: this.args.cwd,
             env: this.args.env,
             maxBuffer: this.args.maxBuffer,
             //    shell: vscode.env.shell
         };
-        return subprocess.execSync(this.command, options);
+        return this.subprocess.execSync(this.command, options);
     }
 
     protected parseResult(result: string): QuickPickItem[] {
@@ -199,6 +205,7 @@ export class CommandHandler {
         // Find all objects where command is shellCommand.execute nested anywhere in the input object.
         // It could be that the actual input being run is nested inside an input from another extension.
         // See https://github.com/augustocdias/vscode-shell-command/issues/79
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         function *deepSearch(obj: { command?: string, [x: string]: any }): Generator<Input> {
             if (obj?.command === "shellCommand.execute") {
                 yield obj as Input;
@@ -223,7 +230,7 @@ export class CommandHandler {
                     // Go through all the nested shellCommand.execute inputs.
                     for (const shellInput of deepSearch(input)) {
                         // Yield the input and assign the workspaceIndex.
-                        yield { ...shellInput, workspaceIndex: folder?.index ?? 0, env }
+                        yield { ...shellInput, workspaceIndex: folder?.index ?? 0, env };
                     }
                 }
             }

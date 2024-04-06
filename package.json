@@ -41,19 +41,21 @@
     "lintd": "eslint_d src --ext .ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
-    "lintd:fix": "npm run lintd -- --fix"
+    "lintd:fix": "npm run lintd -- --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.1",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^12.11.7",
-    "@types/vscode": "^1.37.0",
-    "@typescript-eslint/eslint-plugin": "^5.9.0",
-    "@typescript-eslint/parser": "^5.9.0",
-    "eslint": "^8.6.0",
-    "glob": "^7.1.5",
-    "mocha": "^9.2.2",
-    "typescript": "^3.9.10",
-    "vscode-test": "^1.2.2"
+    "@types/glob": "8.1.0",
+    "@types/node": "20.11.30",
+    "@types/vscode": "1.87.0",
+    "@typescript-eslint/eslint-plugin": "7.3.1",
+    "@typescript-eslint/parser": "7.3.1",
+    "eslint": "8.57.0",
+    "glob": "10.3.10",
+    "mocha": "10.3.0",
+    "typescript": "5.4.3",
+    "vitest": "1.4.0",
+    "vscode-test": "1.6.1"
   }
 }

@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Test Shell Command",
+            "detail": "Test of Shell Command",
+            "type": "shell",
+            "command": "echo ${input:testShellCommand}",
+            "presentation": {
+                "clear": true,
+                "echo": true,
+                "focus": true,
+                "panel": "shared"
+            },
+            "group": "build"
+        }
+    ],
+    "inputs" : [
+        {
+            "id": "testShellCommand",
+            "type": "command",
+            "command": "extension.commandvariable.pickStringRemember",
+            "args": {
+                "description": "Choose a target",
+                "key": "selectedBazelTarget",
+                "rememberTransformed": true,
+                "options": [
+                    { "label": "Select Target", "value": "${command:bazelTargets}", "description": "NOTE: It may take some time for the selection list to be displayed" }
+                ],
+                "command": {
+                    "bazelTargets": {
+                        "command": "shellCommand.execute",
+                        "args": {
+                            "command": "echo 'ItWorked'",
+                            "cwd": "${workspaceFolder}",
+                            "useFirstResult": true
+                        }
+                    }
+               }
+            }
+        }
+    ]
+}
