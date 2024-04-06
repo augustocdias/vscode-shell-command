@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.9.3] - 2024-03-30
+
+- Support commands with spaces. Add `commandArgs` property, which causes `execFileSync` to be called with `command`.
+
 ## [1.9.2] - 2024-03-11
 
 - Fix bug bug with command as array of args introduced in #74

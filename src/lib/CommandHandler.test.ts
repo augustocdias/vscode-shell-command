@@ -20,9 +20,11 @@ vi.mock("child_process", async (importOriginal) => ({
     ...await importOriginal<typeof import("child_process")>(),
 }));
 const execSyncSpy = vi.spyOn(child_process, 'execSync');
+const execFileSyncSpy = vi.spyOn(child_process, 'execFileSync');
 
 beforeEach(() => {
     execSyncSpy.mockClear();
+    execFileSyncSpy.mockClear();
 });
 
 describe("Simple cases", async () => {
@@ -44,6 +46,7 @@ describe("Simple cases", async () => {
 
         await handler.handle();
 
+        expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
         expect(execSyncSpy).toHaveBeenCalledTimes(1);
         expect(execSyncSpy).toHaveBeenCalledWith(
             `cat ${filePath}`,
@@ -72,6 +75,7 @@ describe("Simple cases", async () => {
 
         await handler.handle();
 
+        expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
         expect(execSyncSpy).toHaveBeenCalledTimes(1);
         expect(execSyncSpy).toHaveBeenCalledWith(
             `cat ${filePath}`,
@@ -121,6 +125,7 @@ describe("Multiple workspaces", async () => {
 
             await handler.handle();
 
+            expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
             expect(execSyncSpy).toHaveBeenCalledTimes(1);
             expect(execSyncSpy).toHaveBeenCalledWith(
                 `echo ${expectedResult}`,
@@ -153,9 +158,42 @@ test("Command variable interop", async () => {
 
     await handler.handle();
 
+    expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
     expect(execSyncSpy).toHaveBeenCalledTimes(1);
     expect(execSyncSpy).toHaveBeenCalledWith(
         "echo 'ItWorked'",
+        {
+            cwd: testDataPath,
+            encoding: "utf8",
+            env: undefined,
+            maxBuffer: undefined,
+        },
+    );
+});
+
+test.only("commandArgs", async () => {
+    const testDataPath = path.join(__dirname, "../test/testData/commandArgs");
+    const filePath = `${testDataPath}/.vscode/tasks.json`;
+
+    const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+    const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+    mockVscode.setMockData(mockData);
+    const input = tasksJson.inputs[0].args;
+    const handler = new CommandHandler(
+        input,
+        new UserInputContext(),
+        mockExtensionContext as unknown as vscode.ExtensionContext,
+        child_process,
+    );
+
+    await handler.handle();
+
+    expect(execSyncSpy).toHaveBeenCalledTimes(0);
+    expect(execFileSyncSpy).toHaveBeenCalledTimes(1);
+    expect(execFileSyncSpy).toHaveBeenCalledWith(
+        `${testDataPath}/command with spaces.sh`,
+        [filePath],
         {
             cwd: testDataPath,
             encoding: "utf8",
