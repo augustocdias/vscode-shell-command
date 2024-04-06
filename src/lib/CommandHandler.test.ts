@@ -171,7 +171,7 @@ test("Command variable interop", async () => {
     );
 });
 
-test.only("commandArgs", async () => {
+test("commandArgs", async () => {
     const testDataPath = path.join(__dirname, "../test/testData/commandArgs");
     const filePath = `${testDataPath}/.vscode/tasks.json`;
 
