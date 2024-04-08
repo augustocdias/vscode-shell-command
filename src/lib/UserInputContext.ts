@@ -9,11 +9,13 @@ export class UserInputContext
 
     recordInput(inputId: string, taskValue: string): void
     {
-        this.recordedInputs[inputId] = taskValue;
+        const i = inputId.lastIndexOf('.');
+        this.recordedInputs[i < 0 ? inputId : inputId.substring(0, i)] = taskValue;
     }
 
     lookupInputValue(inputId: string): string
     {
-        return this.recordedInputs[inputId];
+        const i = inputId.lastIndexOf('.');
+        return this.recordedInputs[i < 0 ? inputId : inputId.substring(0, i)];
     }
 }
