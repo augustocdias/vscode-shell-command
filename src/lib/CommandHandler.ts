@@ -131,6 +131,9 @@ export class CommandHandler {
     }
 
     protected parseResult(result: string): QuickPickItem[] {
+        if (this.args.disallowEmptyResult && result.trim().length == 0) {
+            throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
+        }
         return result
             .split(this.EOL)
             .map<QuickPickItem>((value: string) => {
