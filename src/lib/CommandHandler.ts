@@ -47,9 +47,31 @@ export class CommandHandler {
         this.input = this.resolveTaskToInput(args.taskId);
 
         this.userInputContext = userInputContext;
-        this.args = args;
+        this.args = this.resolveBooleanArgs(args);
         this.context = context;
         this.subprocess = subprocess;
+    }
+
+    protected resolveBooleanArgs(args: ShellCommandOptions): ShellCommandOptions {
+        const resolvedBooleans = {
+            useFirstResult: this.parseBoolean(args.useFirstResult, false),
+            useSingleResult: this.parseBoolean(args.useSingleResult, false),
+            rememberPrevious: this.parseBoolean(args.rememberPrevious, false),
+        };
+        return {...args, ...resolvedBooleans};
+    }
+
+    protected parseBoolean(value: boolean | undefined, defaultValue: boolean): boolean {
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            return value === defaultValue.toString() ? defaultValue : !defaultValue;
+        }
+        return defaultValue;
     }
 
     protected async resolveArgs() {
