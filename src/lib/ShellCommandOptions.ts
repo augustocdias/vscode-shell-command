@@ -6,7 +6,6 @@ export interface ShellCommandOptions
     env?: { [s: string]: string };
     useFirstResult?: boolean;
     useSingleResult?: boolean;
-    disallowEmptyResult?: boolean;
     rememberPrevious?: boolean;
     fieldSeparator?: string;
     description?: string;
