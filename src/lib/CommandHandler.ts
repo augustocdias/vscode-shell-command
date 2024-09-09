@@ -61,7 +61,7 @@ export class CommandHandler {
         return {...args, ...resolvedBooleans};
     }
 
-    protected parseBoolean(value: boolean | undefined, defaultValue: boolean): boolean {
+    protected parseBoolean(value: unknown, defaultValue: boolean): boolean {
         if (value === undefined) {
             return defaultValue;
         }
@@ -69,8 +69,13 @@ export class CommandHandler {
             return value;
         }
         if (typeof value === 'string') {
-            return value === defaultValue.toString() ? defaultValue : !defaultValue;
+            if (value.toLowerCase() === 'true') {
+                return true;
+            } else if (value.toLowerCase() === 'false') {
+                return false;
+            }
         }
+        vscode.window.showWarningMessage(`Can not parse the boolean value: ${value}, use the default: ${defaultValue}`);
         return defaultValue;
     }
 
