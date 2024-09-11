@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as subprocess from 'child_process';
-import { ShellCommandOptions } from './lib/ShellCommandOptions';
 import { CommandHandler } from './lib/CommandHandler';
 import { UserInputContext } from './lib/UserInputContext';
 import { ShellCommandException } from './util/exceptions';
