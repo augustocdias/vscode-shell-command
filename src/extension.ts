@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as subprocess from 'child_process';
-import { ShellCommandOptions } from './lib/ShellCommandOptions';
 import { CommandHandler } from './lib/CommandHandler';
 import { UserInputContext } from './lib/UserInputContext';
 import { ShellCommandException } from './util/exceptions';
@@ -10,7 +9,7 @@ import { ShellCommandException } from './util/exceptions';
 export function activate(this: any, context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
     const userInputContext = new UserInputContext();
-    const callback = (args: ShellCommandOptions) => {
+    const callback = (args: object) => {
         try {
             const handler = new CommandHandler(args, userInputContext, context, subprocess);
             return handler.handle();

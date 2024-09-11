@@ -16,40 +16,68 @@ export class CommandHandler {
     protected commandArgs: string[] | undefined;
     protected subprocess: typeof child_process;
 
-    constructor(args: ShellCommandOptions,
+    constructor(args: object,
                 userInputContext: UserInputContext,
                 context: vscode.ExtensionContext,
                 subprocess: typeof child_process,
     ) {
-        if (!Object.prototype.hasOwnProperty.call(args, "command")) {
+        this.args = this.resolveBooleanArgs(args);
+        if (!Object.prototype.hasOwnProperty.call(this.args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
 
-        const command = CommandHandler.resolveCommand(args.command);
+        const command = CommandHandler.resolveCommand(this.args.command);
 
         if (typeof command !== "string") {
             throw new ShellCommandException(
                 'The "command" property should be a string or an array of ' +
-                `string but got "${typeof args.command}".`
+                `string but got "${typeof command}".`
             );
         }
 
-        if (!(args.commandArgs === undefined || Array.isArray(args.commandArgs))) {
+        if (!(this.args.commandArgs === undefined || Array.isArray(this.args.commandArgs))) {
             throw new ShellCommandException(
                 'The "commandArgs" property should be an array of strings ' +
-                `(if defined) but got "${typeof args.commandArgs}".`
+                `(if defined) but got "${typeof this.args.commandArgs}".`
             );
         }
 
         this.command = command;
-        this.commandArgs = args.commandArgs as string[] | undefined;
+        this.commandArgs = this.args.commandArgs as string[] | undefined;
 
-        this.input = this.resolveTaskToInput(args.taskId);
+        this.input = this.resolveTaskToInput(this.args.taskId);
 
         this.userInputContext = userInputContext;
-        this.args = args;
         this.context = context;
         this.subprocess = subprocess;
+    }
+
+    protected resolveBooleanArgs(args: object): ShellCommandOptions {
+        const opt = args as ShellCommandOptions;
+        const resolvedBooleans = {
+            useFirstResult: this.parseBoolean(opt.useFirstResult, false),
+            useSingleResult: this.parseBoolean(opt.useSingleResult, false),
+            rememberPrevious: this.parseBoolean(opt.rememberPrevious, false),
+        };
+        return {...args, ...resolvedBooleans} as ShellCommandOptions;
+    }
+
+    protected parseBoolean(value: unknown, defaultValue: boolean): boolean {
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            if (value.toLowerCase() === 'true') {
+                return true;
+            } else if (value.toLowerCase() === 'false') {
+                return false;
+            }
+        }
+        vscode.window.showWarningMessage(`Cannot parse the boolean value: ${value}, use the default: ${defaultValue}`);
+        return defaultValue;
     }
 
     protected async resolveArgs() {
