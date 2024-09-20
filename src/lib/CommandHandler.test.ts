@@ -216,16 +216,16 @@ test("stdio", async () => {
 
     mockVscode.setMockData(mockData);
     const input = tasksJson.inputs[0].args;
-    const expectationStdout = expect.objectContaining({ value: "this is on stdout" })
-    const expectationStderr = expect.objectContaining({ value: "this is on stderr" })
+    const expectationStdout = expect.objectContaining({ value: "this is on stdout" });
+    const expectationStderr = expect.objectContaining({ value: "this is on stderr" });
 
     for (const { setting, expectation } of [
         { setting: "stdout", expectation: [ expectationStdout ] },
         { setting: "stderr", expectation: [ expectationStderr ] },
         { setting: "both", expectation: [ expectationStdout, expectationStderr ] },
     ]) {
-        execSpy.mockClear()
-        execFileSpy.mockClear()
+        execSpy.mockClear();
+        execFileSpy.mockClear();
 
         const handler = new CommandHandler(
             { ...input, stdio: setting },
@@ -234,19 +234,21 @@ test("stdio", async () => {
             child_process,
         );
 
-        // @ts-ignore
-        handler.quickPick = vi.fn()
+        // @ts-expect-error Mock the quickPick method. It's not trivial to mock
+        // the underlying vscode functions.
+        handler.quickPick = vi.fn();
 
         await handler.handle();
 
         expect(execSpy).toHaveBeenCalledTimes(1);
         expect(execFileSpy).toHaveBeenCalledTimes(0);
-        // @ts-ignore
-        expect(handler.quickPick).toHaveBeenCalledTimes(1)
-        // @ts-ignore
-        expect(handler.quickPick).toHaveBeenCalledWith(expectation)
+        // @ts-expect-error Check that the method was called
+        expect(handler.quickPick).toHaveBeenCalledTimes(1);
+        // @ts-expect-error Check that the method was called with the correct
+        // arguments
+        expect(handler.quickPick).toHaveBeenCalledWith(expectation);
     }
-})
+});
 
 describe("Errors", async () => {
     test("It should trigger an error for an empty result", async () => {
