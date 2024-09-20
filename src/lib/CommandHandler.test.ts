@@ -19,12 +19,12 @@ const mockExtensionContext = {
 vi.mock("child_process", async (importOriginal) => ({
     ...await importOriginal<typeof import("child_process")>(),
 }));
-const execSyncSpy = vi.spyOn(child_process, 'execSync');
-const execFileSyncSpy = vi.spyOn(child_process, 'execFileSync');
+const execSpy = vi.spyOn(child_process, 'exec');
+const execFileSpy = vi.spyOn(child_process, 'execFile');
 
 beforeEach(() => {
-    execSyncSpy.mockClear();
-    execFileSyncSpy.mockClear();
+    execSpy.mockClear();
+    execFileSpy.mockClear();
 });
 
 describe("Simple cases", async () => {
@@ -46,9 +46,9 @@ describe("Simple cases", async () => {
 
         await handler.handle();
 
-        expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
-        expect(execSyncSpy).toHaveBeenCalledTimes(1);
-        expect(execSyncSpy).toHaveBeenCalledWith(
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execSpy).toHaveBeenCalledWith(
             `cat ${filePath}`,
             {
                 cwd: testDataPath,
@@ -60,6 +60,7 @@ describe("Simple cases", async () => {
                 },
                 maxBuffer: undefined,
             },
+            expect.anything(),
         );
     });
 
@@ -75,9 +76,9 @@ describe("Simple cases", async () => {
 
         await handler.handle();
 
-        expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
-        expect(execSyncSpy).toHaveBeenCalledTimes(1);
-        expect(execSyncSpy).toHaveBeenCalledWith(
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execSpy).toHaveBeenCalledWith(
             `cat ${filePath}`,
             {
                 cwd: testDataPath,
@@ -85,6 +86,7 @@ describe("Simple cases", async () => {
                 env: undefined,
                 maxBuffer: undefined,
             },
+            expect.anything(),
         );
     });
 });
@@ -125,9 +127,9 @@ describe("Multiple workspaces", async () => {
 
             await handler.handle();
 
-            expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
-            expect(execSyncSpy).toHaveBeenCalledTimes(1);
-            expect(execSyncSpy).toHaveBeenCalledWith(
+            expect(execFileSpy).toHaveBeenCalledTimes(0);
+            expect(execSpy).toHaveBeenCalledTimes(1);
+            expect(execSpy).toHaveBeenCalledWith(
                 `echo ${expectedResult}`,
                 {
                     cwd: taskId.startsWith("a") ? `${testDataPath}/a` : `${testDataPath}/b`,
@@ -135,6 +137,7 @@ describe("Multiple workspaces", async () => {
                     env: undefined,
                     maxBuffer: undefined,
                 },
+                expect.anything(),
             );
         });
     }
@@ -158,9 +161,9 @@ test("Command variable interop", async () => {
 
     await handler.handle();
 
-    expect(execFileSyncSpy).toHaveBeenCalledTimes(0);
-    expect(execSyncSpy).toHaveBeenCalledTimes(1);
-    expect(execSyncSpy).toHaveBeenCalledWith(
+    expect(execFileSpy).toHaveBeenCalledTimes(0);
+    expect(execSpy).toHaveBeenCalledTimes(1);
+    expect(execSpy).toHaveBeenCalledWith(
         "echo 'ItWorked'",
         {
             cwd: testDataPath,
@@ -168,6 +171,7 @@ test("Command variable interop", async () => {
             env: undefined,
             maxBuffer: undefined,
         },
+        expect.anything(),
     );
 });
 
@@ -189,9 +193,9 @@ test("commandArgs", async () => {
 
     await handler.handle();
 
-    expect(execSyncSpy).toHaveBeenCalledTimes(0);
-    expect(execFileSyncSpy).toHaveBeenCalledTimes(1);
-    expect(execFileSyncSpy).toHaveBeenCalledWith(
+    expect(execSpy).toHaveBeenCalledTimes(0);
+    expect(execFileSpy).toHaveBeenCalledTimes(1);
+    expect(execFileSpy).toHaveBeenCalledWith(
         `${testDataPath}/command with spaces.sh`,
         [filePath],
         {
@@ -200,8 +204,49 @@ test("commandArgs", async () => {
             env: undefined,
             maxBuffer: undefined,
         },
+        expect.anything(),
     );
 });
+
+test("stdio", async () => {
+    const testDataPath = path.join(__dirname, "../test/testData/stdio");
+
+    const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+    const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+    mockVscode.setMockData(mockData);
+    const input = tasksJson.inputs[0].args;
+    const expectationStdout = expect.objectContaining({ value: "this is on stdout" })
+    const expectationStderr = expect.objectContaining({ value: "this is on stderr" })
+
+    for (const { setting, expectation } of [
+        { setting: "stdout", expectation: [ expectationStdout ] },
+        { setting: "stderr", expectation: [ expectationStderr ] },
+        { setting: "both", expectation: [ expectationStdout, expectationStderr ] },
+    ]) {
+        execSpy.mockClear()
+        execFileSpy.mockClear()
+
+        const handler = new CommandHandler(
+            { ...input, stdio: setting },
+            new UserInputContext(),
+            mockExtensionContext as unknown as vscode.ExtensionContext,
+            child_process,
+        );
+
+        // @ts-ignore
+        handler.quickPick = vi.fn()
+
+        await handler.handle();
+
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+        // @ts-ignore
+        expect(handler.quickPick).toHaveBeenCalledTimes(1)
+        // @ts-ignore
+        expect(handler.quickPick).toHaveBeenCalledWith(expectation)
+    }
+})
 
 describe("Errors", async () => {
     test("It should trigger an error for an empty result", async () => {
@@ -226,11 +271,12 @@ describe("Errors", async () => {
 
 describe("Argument parsing", () => {
     test("Test defaults and that all boolean properties use parseBoolean", () => {
-        expect(CommandHandler.resolveBooleanArgs({ extraTestThing: 42 }))
+        expect(CommandHandler.resolveArgs({ extraTestThing: 42 }))
             .toStrictEqual({
                 rememberPrevious: false,
                 useFirstResult: false,
                 useSingleResult: false,
+                stdio: "stdout",
                 extraTestThing: 42,
             });
     });

@@ -96,6 +96,7 @@ Arguments for the extension:
 * `description`: shown as a placeholder in 'Quick Pick', provides context for the input
 * `maxBuffer`: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
 * `defaultOptions`: if the command doesn't return anything, the list provided will be set for the user to choose from
+* `stdio`: specifies whether to get the results from `stdout`, `stderr`, or `both`. Default is `stdout`.
 
 As of today, the extension supports variable substitution for:
 

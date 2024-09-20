@@ -6,6 +6,19 @@ import { ShellCommandException } from "../util/exceptions";
 import { UserInputContext } from "./UserInputContext";
 import { QuickPickItem } from "./QuickPickItem";
 
+function promisify<T extends unknown[], R>(fn: (...args: [...T, (err: Error | null, stdout: string, stderr: string) => void]) => R) {
+    return (...args: [...T]) =>
+        new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+            fn(...args, (err: Error | null, stdout: string, stderr: string) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ stdout, stderr });
+                }
+            });
+        });
+}
+
 export class CommandHandler {
     protected args: ShellCommandOptions;
     protected EOL = /\r\n|\r|\n/;
@@ -16,12 +29,12 @@ export class CommandHandler {
     protected commandArgs: string[] | undefined;
     protected subprocess: typeof child_process;
 
-    constructor(args: object,
+    constructor(args: { [key: string]: unknown },
                 userInputContext: UserInputContext,
                 context: vscode.ExtensionContext,
                 subprocess: typeof child_process,
     ) {
-        this.args = CommandHandler.resolveBooleanArgs(args);
+        this.args = CommandHandler.resolveArgs(args);
         if (!Object.prototype.hasOwnProperty.call(this.args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
@@ -52,14 +65,14 @@ export class CommandHandler {
         this.subprocess = subprocess;
     }
 
-    static resolveBooleanArgs(args: object): ShellCommandOptions {
-        const opt = args as ShellCommandOptions;
-        const resolvedBooleans = {
-            useFirstResult: CommandHandler.parseBoolean(opt.useFirstResult, false),
-            useSingleResult: CommandHandler.parseBoolean(opt.useSingleResult, false),
-            rememberPrevious: CommandHandler.parseBoolean(opt.rememberPrevious, false),
-        };
-        return {...args, ...resolvedBooleans} as ShellCommandOptions;
+    static resolveArgs(args: { [key: string]: unknown }): ShellCommandOptions {
+        return {
+            useFirstResult: CommandHandler.parseBoolean(args.useFirstResult, false),
+            useSingleResult: CommandHandler.parseBoolean(args.useSingleResult, false),
+            rememberPrevious: CommandHandler.parseBoolean(args.rememberPrevious, false),
+            stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
+            ...args,
+        } as ShellCommandOptions;
     }
 
     static parseBoolean(value: unknown, defaultValue: boolean): boolean {
@@ -128,7 +141,7 @@ export class CommandHandler {
     async handle() {
         await this.resolveArgs();
 
-        const result = this.runCommand();
+        const result = await this.runCommand();
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult =
             this.args.useFirstResult || (this.args.useSingleResult && nonEmptyInput.length === 1);
@@ -142,7 +155,7 @@ export class CommandHandler {
         }
     }
 
-    protected runCommand() {
+    protected async runCommand() {
         const options: child_process.ExecSyncOptionsWithStringEncoding = {
             encoding: "utf8",
             cwd: this.args.cwd,
@@ -152,13 +165,25 @@ export class CommandHandler {
         };
 
         if (this.commandArgs !== undefined) {
-            return this.subprocess.execFileSync(this.command, this.commandArgs, options);
+            const execFile = promisify(this.subprocess.execFile);
+            return await execFile(this.command, this.commandArgs, options);
         } else {
-            return this.subprocess.execSync(this.command, options);
+            const exec = promisify<[string, child_process.ExecOptionsWithStringEncoding], child_process.ChildProcess>(this.subprocess.exec);
+            return exec(this.command, options);
         }
     }
 
-    protected parseResult(result: string): QuickPickItem[] {
+    protected parseResult({ stdout, stderr }: { stdout: string, stderr: string }): QuickPickItem[] {
+        let result = "";
+
+        if (("stdout" == this.args.stdio) || ("both" == this.args.stdio)) {
+            result += stdout;
+        }
+
+        if (("stderr" == this.args.stdio) || ("both" == this.args.stdio)) {
+            result += stderr;
+        }
+
         if (result.trim().length == 0) {
             throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
         }

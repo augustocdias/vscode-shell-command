@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Echo Project File",
+      "type": "shell",
+      "command": "echo ${input:inputTest}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "inputTest",
+      "type": "command",
+      "command": "shellCommand.execute",
+      "args": {
+        "command": "echo this is on stdout && echo this is on stderr >&2",
+        "stdio": "stderr"
+      }
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import { ShellCommandException } from './util/exceptions';
 export function activate(this: any, context: vscode.ExtensionContext) {
     const command = 'shellCommand.execute';
     const userInputContext = new UserInputContext();
-    const callback = (args: object) => {
+    const callback = (args: { [key: string]: unknown }) => {
         try {
             const handler = new CommandHandler(args, userInputContext, context, subprocess);
             return handler.handle();

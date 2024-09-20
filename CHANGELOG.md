@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Add support for getting results from stderr (fix issue #86)
 - Improve error handling
 - Improve parsing of boolean arguments
 
