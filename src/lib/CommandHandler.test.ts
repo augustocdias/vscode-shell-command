@@ -202,3 +202,56 @@ test("commandArgs", async () => {
         },
     );
 });
+
+describe("Errors", async () => {
+    test("It should trigger an error for an empty result", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/errors");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(),
+            mockExtensionContext as unknown as vscode.ExtensionContext,
+            child_process,
+        );
+
+        expect(() => handler.handle()).rejects.toThrowError(
+            "The command for input 'inputTest' returned empty result.");
+    });
+});
+
+describe("Argument parsing", () => {
+    test("Test defaults and that all boolean properties use parseBoolean", () => {
+        expect(CommandHandler.resolveBooleanArgs({ extraTestThing: 42 }))
+            .toStrictEqual({
+                rememberPrevious: false,
+                useFirstResult: false,
+                useSingleResult: false,
+                extraTestThing: 42,
+            });
+    });
+
+    test("parseBoolean", () => {
+        expect(CommandHandler.parseBoolean(undefined, true)).toBe(true);
+        expect(CommandHandler.parseBoolean(undefined, false)).toBe(false);
+
+        expect(CommandHandler.parseBoolean(false, true)).toBe(false);
+        expect(CommandHandler.parseBoolean(true, false)).toBe(true);
+
+        expect(CommandHandler.parseBoolean("false", true)).toBe(false);
+        expect(CommandHandler.parseBoolean("fALse", true)).toBe(false);
+        expect(CommandHandler.parseBoolean("true", false)).toBe(true);
+        expect(CommandHandler.parseBoolean("tRUe", false)).toBe(true);
+
+        expect(mockVscode.window.getShowWarningMessageCalls().length).toBe(0);
+
+        expect(CommandHandler.parseBoolean(42, true)).toBe(true);
+        expect(CommandHandler.parseBoolean(42, false)).toBe(false);
+
+        expect(mockVscode.window.getShowWarningMessageCalls().length).toBe(2);
+    });
+});

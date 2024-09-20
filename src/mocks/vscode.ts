@@ -63,6 +63,9 @@ type MockData = {
     };
 }
 
+// This mock does not need to be saved
+const showWarningMessageCalls: string[] = [];
+
 export namespace window {
     export namespace activeTextEditor {
         export namespace document {
@@ -80,6 +83,14 @@ export namespace window {
                 export let line: number | undefined = undefined;
             }
         }
+    }
+
+    export function showWarningMessage(message: string) {
+        showWarningMessageCalls.push(message);
+    }
+
+    export function getShowWarningMessageCalls() {
+        return showWarningMessageCalls;
     }
 }
 

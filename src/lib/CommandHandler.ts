@@ -21,7 +21,7 @@ export class CommandHandler {
                 context: vscode.ExtensionContext,
                 subprocess: typeof child_process,
     ) {
-        this.args = this.resolveBooleanArgs(args);
+        this.args = CommandHandler.resolveBooleanArgs(args);
         if (!Object.prototype.hasOwnProperty.call(this.args, "command")) {
             throw new ShellCommandException('Please specify the "command" property.');
         }
@@ -52,17 +52,17 @@ export class CommandHandler {
         this.subprocess = subprocess;
     }
 
-    protected resolveBooleanArgs(args: object): ShellCommandOptions {
+    static resolveBooleanArgs(args: object): ShellCommandOptions {
         const opt = args as ShellCommandOptions;
         const resolvedBooleans = {
-            useFirstResult: this.parseBoolean(opt.useFirstResult, false),
-            useSingleResult: this.parseBoolean(opt.useSingleResult, false),
-            rememberPrevious: this.parseBoolean(opt.rememberPrevious, false),
+            useFirstResult: CommandHandler.parseBoolean(opt.useFirstResult, false),
+            useSingleResult: CommandHandler.parseBoolean(opt.useSingleResult, false),
+            rememberPrevious: CommandHandler.parseBoolean(opt.rememberPrevious, false),
         };
         return {...args, ...resolvedBooleans} as ShellCommandOptions;
     }
 
-    protected parseBoolean(value: unknown, defaultValue: boolean): boolean {
+    static parseBoolean(value: unknown, defaultValue: boolean): boolean {
         if (value === undefined) {
             return defaultValue;
         }
@@ -162,6 +162,7 @@ export class CommandHandler {
         if (result.trim().length == 0) {
             throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
         }
+
         return result
             .split(this.EOL)
             .map<QuickPickItem>((value: string) => {
