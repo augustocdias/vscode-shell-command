@@ -202,3 +202,24 @@ test("commandArgs", async () => {
         },
     );
 });
+
+describe("Errors", async () => {
+    test("It should trigger an error for an empty result", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/errors");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(),
+            mockExtensionContext as unknown as vscode.ExtensionContext,
+            child_process,
+        );
+
+        expect(() => handler.handle()).rejects.toThrowError(
+            "The command for input 'inputTest' returned empty result.");
+    });
+});

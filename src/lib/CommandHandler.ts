@@ -162,6 +162,7 @@ export class CommandHandler {
         if (result.trim().length == 0) {
             throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
         }
+
         return result
             .split(this.EOL)
             .map<QuickPickItem>((value: string) => {
