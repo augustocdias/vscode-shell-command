@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+- Improve error handling
+- Improve parsing of boolean arguments
+
 ## [1.10.0] - 2024-04-06
 
 - Support commands with spaces. Add `commandArgs` property, which causes `execFileSync` to be called with `command`.
