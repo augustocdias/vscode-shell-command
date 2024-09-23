@@ -237,7 +237,9 @@ export class CommandHandler {
             const disposable = vscode.Disposable.from(
                 picker,
                 picker.onDidAccept(() => {
-                    resolve((picker.selectedItems[0] as QuickPickItem).value);
+                    const selection = (picker.selectedItems[0] as QuickPickItem).value;
+                    this.userInputContext.recordInput(this.input.id, selection);
+                    resolve(selection);
                     disposable.dispose();
                 }),
 
