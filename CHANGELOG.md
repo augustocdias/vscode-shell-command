@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [1.11.0] 2024-09-21
 
 - Add support for getting results from stderr (fix issue #86)
 - Improve error handling
