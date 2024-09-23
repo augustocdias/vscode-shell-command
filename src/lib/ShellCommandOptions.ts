@@ -7,6 +7,7 @@ export interface ShellCommandOptions
     useFirstResult?: boolean;
     useSingleResult?: boolean;
     rememberPrevious?: boolean;
+    allowCustomValues?: boolean;
     fieldSeparator?: string;
     description?: string;
     maxBuffer?: number;

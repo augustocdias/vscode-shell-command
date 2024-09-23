@@ -70,6 +70,7 @@ export class CommandHandler {
             useFirstResult: CommandHandler.parseBoolean(args.useFirstResult, false),
             useSingleResult: CommandHandler.parseBoolean(args.useSingleResult, false),
             rememberPrevious: CommandHandler.parseBoolean(args.rememberPrevious, false),
+            allowCustomValues: CommandHandler.parseBoolean(args.allowCustomValues, false),
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
             ...args,
         } as ShellCommandOptions;
@@ -214,12 +215,10 @@ export class CommandHandler {
 
     protected async quickPick(input: QuickPickItem[]) {
         if (input.length === 0) {
-            input = this.args.defaultOptions?.map(o => {
-                return {
-                    value: o,
-                    label: o
-                };
-            }) ?? [];
+            input = this.args.defaultOptions?.map((option) => ({
+                value: option,
+                label: option,
+            })) ?? [];
         }
 
         const defaultValue = this.getDefault();
@@ -234,8 +233,22 @@ export class CommandHandler {
                 picker.placeholder = this.args.description;
             }
 
-            const disposable = vscode.Disposable.from(
+            // Compute all constant (non custom) picker items.
+            const constantItems = input.map(
+                (item) =>
+                    ({
+                        label: item.label,
+                        description: item.value === defaultValue
+                            ? `${item.description} (Default)`
+                            : item.description,
+                        detail: item.detail,
+                        value: item.value,
+                    } as vscode.QuickPickItem),
+            );
+
+            const disposableLikes = [
                 picker,
+
                 picker.onDidAccept(() => {
                     resolve((picker.selectedItems[0] as QuickPickItem).value);
                     disposable.dispose();
@@ -256,17 +269,31 @@ export class CommandHandler {
                     }
                     disposable.dispose();
                 }),
-            );
+            ];
 
-            picker.items = input.map(
-                (item) =>
-                    ({
-                        label: item.label,
-                        description: item.value === defaultValue ? `${item.description} (Default)` : item.description,
-                        detail: item.detail,
-                        value: item.value,
-                    } as vscode.QuickPickItem),
-            );
+            if (this.args.allowCustomValues) {
+                // Cache item labels to save some work on keypress.
+                const itemLabels = input.map((item) => item.label);
+
+                disposableLikes.push(picker.onDidChangeValue(() => {
+                    // Vscode API has no mechanism to detect visible items.
+                    // The best we can do is check if it's not exactly equal to an existing item.
+                    if (picker.value !== "" && !itemLabels.includes(picker.value)) {
+                        // There's no more efficient way to do this.
+                        // Vscode doesn't update unless we give it a new object.
+                        picker.items = [...constantItems, {
+                            label: picker.value,
+                            description: "(Custom)",
+                        }];
+                    } else {
+                        picker.items = constantItems;
+                    }
+                }));
+            }
+
+            const disposable = vscode.Disposable.from(...disposableLikes);
+
+            picker.items = constantItems;
 
             for (const item of picker.items) {
                 if ((item as QuickPickItem).value === defaultValue) {

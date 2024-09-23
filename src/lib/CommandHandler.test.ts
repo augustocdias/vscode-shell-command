@@ -275,6 +275,7 @@ describe("Argument parsing", () => {
     test("Test defaults and that all boolean properties use parseBoolean", () => {
         expect(CommandHandler.resolveArgs({ extraTestThing: 42 }))
             .toStrictEqual({
+                allowCustomValues: false,
                 rememberPrevious: false,
                 useFirstResult: false,
                 useSingleResult: false,
