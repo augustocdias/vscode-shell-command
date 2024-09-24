@@ -99,9 +99,9 @@ export namespace workspace {
     export const workspaceFolders = [];
 
     export function getConfiguration(
-        section?: string, scope?: vscode.ConfigurationScope) {
+        section?: string, resource?: vscode.Uri | null) {
         const funcName = "workspace.getConfiguration().inspect()";
-        const path = (scope as {path?: string})?.path;
+        const path = (resource as {path?: string})?.path;
 
         if (mode == "mock") {
             return {
@@ -110,7 +110,7 @@ export namespace workspace {
                 }
             };
         } else {
-            const result = vscode.workspace.getConfiguration(section, scope);
+            const result = vscode.workspace.getConfiguration(section, resource);
 
             const originalInspect = result.inspect;
 
