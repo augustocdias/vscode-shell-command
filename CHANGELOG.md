@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 
-- Add support for custom values
+- Add support for custom values (#33)
+- Fix bug in pick selection (#95)
 
 ## [1.11.0] 2024-09-21
 
