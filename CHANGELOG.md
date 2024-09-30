@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [1.12.0] 2024-09-30
 
 - Add support for custom values (#33)
 - Fix bug in pick selection (#95)
