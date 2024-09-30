@@ -8,6 +8,8 @@ export interface ShellCommandOptions
     useSingleResult?: boolean;
     rememberPrevious?: boolean;
     allowCustomValues?: boolean;
+    multiselect?: boolean;
+    multiselectSeparator?: string;
     fieldSeparator?: string;
     description?: string;
     maxBuffer?: number;

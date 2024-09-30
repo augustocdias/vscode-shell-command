@@ -15,6 +15,7 @@
       "command": "shellCommand.execute",
       "args": {
         "command": "cat ${file}",
+        "multiselect": true,
         "cwd": "${workspaceFolder}",
         "env": {
           "WORKSPACE": "${workspaceFolder[0]}",

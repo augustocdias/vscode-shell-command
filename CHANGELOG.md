@@ -4,6 +4,7 @@
 
 - Add support for custom values (#33)
 - Fix bug in pick selection (#95)
+- Add support for multiselect (#82)
 
 ## [1.11.0] 2024-09-21
 
