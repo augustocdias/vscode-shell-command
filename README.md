@@ -91,6 +91,7 @@ Arguments for the extension:
 * `useFirstResult`: skip 'Quick Pick' dialog and use first result returned from the command
 * `useSingleResult`: skip 'Quick Pick' dialog and use the single result if only one returned from the command
 * `rememberPrevious`: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskId to be set**)
+* `allowCustomValues`: If true, it's possible to enter a new value that is not part of the command output.
 * `taskId`: Unique id to use for storing the last-used value.
 * `fieldSeparator`: the string that separates `value`, `label`, `description` and `detail` fields
 * `description`: shown as a placeholder in 'Quick Pick', provides context for the input
