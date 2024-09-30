@@ -279,6 +279,8 @@ describe("Argument parsing", () => {
                 rememberPrevious: false,
                 useFirstResult: false,
                 useSingleResult: false,
+                multiselect: false,
+                multiselectSeparator: " ",
                 stdio: "stdout",
                 extraTestThing: 42,
             });

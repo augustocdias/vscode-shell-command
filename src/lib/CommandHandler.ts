@@ -71,6 +71,8 @@ export class CommandHandler {
             useSingleResult: CommandHandler.parseBoolean(args.useSingleResult, false),
             rememberPrevious: CommandHandler.parseBoolean(args.rememberPrevious, false),
             allowCustomValues: CommandHandler.parseBoolean(args.allowCustomValues, false),
+            multiselect: CommandHandler.parseBoolean(args.multiselect, false),
+            multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
             ...args,
         } as ShellCommandOptions;
@@ -96,7 +98,9 @@ export class CommandHandler {
 
     protected async resolveArgs() {
         const resolver = new VariableResolver(
-            this.input, this.userInputContext, this.getDefault());
+            this.input,
+            this.userInputContext,
+            this.getDefault().join(this.args.multiselectSeparator));
 
         const command = await resolver.resolve(this.command);
         if (command === undefined) {
@@ -154,17 +158,21 @@ export class CommandHandler {
             }
             return nonEmptyInput[0].value;
         } else {
-            const selection = await this.quickPick(nonEmptyInput);
+            const selectedItems = await this.quickPick(nonEmptyInput);
 
-            if (selection) {
-                this.userInputContext.recordInput(this.input.id, selection);
-
-                if (this.args.rememberPrevious && this.args.taskId) {
-                    this.setDefault(this.args.taskId, selection);
-                }
+            if (!selectedItems) {
+                this.userInputContext.reset();
+                return;
             }
 
-            return selection;
+            const result = selectedItems.join(this.args.multiselectSeparator!);
+            this.userInputContext.recordInput(this.input.id, result);
+
+            if (this.args.rememberPrevious && this.args.taskId) {
+                this.setDefault(this.args.taskId, selectedItems);
+            }
+
+            return result;
         }
     }
 
@@ -217,12 +225,14 @@ export class CommandHandler {
 
     protected getDefault() {
         if (this.args.rememberPrevious && this.args.taskId) {
-            return this.context.workspaceState.get<string>(this.args.taskId, "");
+            return this.context.workspaceState.get<string[]>(this.args.taskId, []);
         }
+
+        return [];
     }
 
-    protected async setDefault(id: string, value: string) {
-        await this.context.workspaceState.update(id, value);
+    protected async setDefault(id: string, values: string[]) {
+        await this.context.workspaceState.update(id, values);
     }
 
     protected async quickPick(input: QuickPickItem[]) {
@@ -233,12 +243,12 @@ export class CommandHandler {
             })) ?? [];
         }
 
-        const defaultValue = this.getDefault();
+        const defaultValues = this.getDefault();
         let disposable: vscode.Disposable;
 
-        return new Promise<string | undefined>((resolve) => {
+        return new Promise<vscode.QuickPick<vscode.QuickPickItem> | undefined>((resolve) => {
             const picker = vscode.window.createQuickPick();
-            picker.canSelectMany = false;
+            picker.canSelectMany = this.args.multiselect!;
             picker.matchOnDescription = true;
             picker.matchOnDetail = true;
 
@@ -249,7 +259,7 @@ export class CommandHandler {
             // Compute all constant (non custom) picker items.
             const constantItems = input.map((item) => ({
                 label: item.label,
-                description: item.value === defaultValue
+                description: defaultValues.includes(item.value)
                     ? `${item.description} (Default)`
                     : item.description,
                 detail: item.detail,
@@ -260,17 +270,16 @@ export class CommandHandler {
                 picker,
 
                 picker.onDidAccept(() => {
-                    resolve((picker.selectedItems[0] as QuickPickItem).value);
+                    resolve(picker);
                 }),
 
                 picker.onDidHide(() => {
                     const didCancelQuickPickSession =
                         picker?.selectedItems?.length === 0 ?? true;
                     if (didCancelQuickPickSession) {
-                        this.userInputContext.reset();
                         resolve(undefined);
-                    } else if (this.input.id)  {
-                        resolve((picker.selectedItems[0] as QuickPickItem).value);
+                    } else if (this.input.id) {
+                        resolve(picker);
                     }
                 }),
             ];
@@ -298,15 +307,13 @@ export class CommandHandler {
             disposable = vscode.Disposable.from(...disposableLikes);
 
             picker.items = constantItems;
-
-            for (const item of picker.items) {
-                if ((item as QuickPickItem).value === defaultValue) {
-                    picker.activeItems = [item];
-                    break;
-                }
-            }
+            picker.activeItems = picker.items.filter(
+                (item) => defaultValues.includes((item as QuickPickItem).value));
 
             picker.show();
+        }).then((picker) => {
+            return picker?.selectedItems.map(
+                (item) => (item as QuickPickItem).value);
         }).finally(() => {
             disposable.dispose();
         });
