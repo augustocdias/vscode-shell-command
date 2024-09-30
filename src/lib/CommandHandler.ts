@@ -145,14 +145,26 @@ export class CommandHandler {
         const result = await this.runCommand();
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult =
-            this.args.useFirstResult || (this.args.useSingleResult && nonEmptyInput.length === 1);
+            this.args.useFirstResult ||
+            (this.args.useSingleResult && nonEmptyInput.length === 1);
+
         if (useFirstResult) {
             if (this.input.id && this.userInputContext) {
                 this.userInputContext.recordInput(this.input.id, nonEmptyInput[0].value);
             }
             return nonEmptyInput[0].value;
         } else {
-            return this.quickPick(nonEmptyInput);
+            const selection = await this.quickPick(nonEmptyInput);
+
+            if (selection) {
+                this.userInputContext.recordInput(this.input.id, selection);
+
+                if (this.args.rememberPrevious && this.args.taskId) {
+                    this.setDefault(this.args.taskId, selection);
+                }
+            }
+
+            return selection;
         }
     }
 
@@ -222,6 +234,7 @@ export class CommandHandler {
         }
 
         const defaultValue = this.getDefault();
+        let disposable: vscode.Disposable;
 
         return new Promise<string | undefined>((resolve) => {
             const picker = vscode.window.createQuickPick();
@@ -234,40 +247,31 @@ export class CommandHandler {
             }
 
             // Compute all constant (non custom) picker items.
-            const constantItems = input.map(
-                (item) =>
-                    ({
-                        label: item.label,
-                        description: item.value === defaultValue
-                            ? `${item.description} (Default)`
-                            : item.description,
-                        detail: item.detail,
-                        value: item.value,
-                    } as vscode.QuickPickItem),
-            );
+            const constantItems = input.map((item) => ({
+                label: item.label,
+                description: item.value === defaultValue
+                    ? `${item.description} (Default)`
+                    : item.description,
+                detail: item.detail,
+                value: item.value,
+            } as vscode.QuickPickItem));
 
             const disposableLikes = [
                 picker,
 
                 picker.onDidAccept(() => {
                     resolve((picker.selectedItems[0] as QuickPickItem).value);
-                    disposable.dispose();
                 }),
 
                 picker.onDidHide(() => {
-                    const didCancelQuickPickSession = picker?.selectedItems?.length === 0 ?? true;
+                    const didCancelQuickPickSession =
+                        picker?.selectedItems?.length === 0 ?? true;
                     if (didCancelQuickPickSession) {
                         this.userInputContext.reset();
                         resolve(undefined);
                     } else if (this.input.id)  {
-                        const selection = (picker.selectedItems[0] as QuickPickItem).value;
-                        this.userInputContext.recordInput(this.input.id, selection);
-                        if (this.args.rememberPrevious && this.args.taskId) {
-                            this.setDefault(this.args.taskId, selection);
-                        }
-                        resolve(selection);
+                        resolve((picker.selectedItems[0] as QuickPickItem).value);
                     }
-                    disposable.dispose();
                 }),
             ];
 
@@ -291,7 +295,7 @@ export class CommandHandler {
                 }));
             }
 
-            const disposable = vscode.Disposable.from(...disposableLikes);
+            disposable = vscode.Disposable.from(...disposableLikes);
 
             picker.items = constantItems;
 
@@ -303,6 +307,8 @@ export class CommandHandler {
             }
 
             picker.show();
+        }).finally(() => {
+            disposable.dispose();
         });
     }
 
