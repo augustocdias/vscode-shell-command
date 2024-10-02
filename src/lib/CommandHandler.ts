@@ -205,7 +205,7 @@ export class CommandHandler {
             result += stderr;
         }
 
-        if (result.trim().length == 0) {
+        if ((result.trim().length == 0) && (undefined === this.args.defaultOptions)) {
             throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
         }
 

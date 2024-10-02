@@ -269,6 +269,25 @@ describe("Errors", async () => {
         expect(() => handler.handle()).rejects.toThrowError(
             "The command for input 'inputTest' returned empty result.");
     });
+
+    test("It should NOT trigger an error with defaultOptions", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/errors");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[1].args;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(),
+            mockExtensionContext as unknown as vscode.ExtensionContext,
+            child_process,
+        );
+
+        expect(() => handler.handle()).rejects.not.toThrowError(
+            "The command for input 'inputTest' returned empty result.");
+    });
 });
 
 describe("Argument parsing", () => {

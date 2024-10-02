@@ -6,6 +6,12 @@
       "type": "shell",
       "command": "echo ${input:inputTest}",
       "problemMatcher": []
+    },
+    {
+      "label": "This should not trigger an error",
+      "type": "shell",
+      "command": "echo ${input:inputTestWithDefaults}",
+      "problemMatcher": []
     }
   ],
   "inputs": [
@@ -21,6 +27,15 @@
           "FILE": "${file}",
           "PROJECT": "${workspaceFolderBasename}"
         }
+      }
+    },
+    {
+      "id": "inputTestWithDefaults",
+      "type": "command",
+      "command": "shellCommand.execute",
+      "args": {
+        "command": "echo ''",
+        "defaultOptions": []
       }
     }
   ]
