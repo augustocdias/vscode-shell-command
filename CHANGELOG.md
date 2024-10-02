@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.12.1] 2024-10-02
+
+- Fix errors with default values (#107)
+
 ## [1.12.0] 2024-09-30
 
 - Add support for custom values (#33)
