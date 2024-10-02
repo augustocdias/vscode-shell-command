@@ -66,9 +66,14 @@ describe("Simple cases", async () => {
 
     test("Command as array of strings", async () => {
         mockVscode.setMockData(mockData);
+        const args = {
+            command: ["cat", "${file}"],
+            useFirstResult: true,
+            taskId: "inputTest",
+        };
 
         const handler = new CommandHandler(
-            {command: ["cat", "${file}"], useFirstResult: true},
+            args,
             new UserInputContext(),
             mockExtensionContext as unknown as vscode.ExtensionContext,
             child_process,
@@ -248,6 +253,42 @@ test("stdio", async () => {
         // arguments
         expect(handler.quickPick).toHaveBeenCalledWith(expectation);
     }
+});
+
+describe("Workspace state", () => {
+    test("It should return an array even if the saved value is a string", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/simple");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args;
+
+        class CommandHandlerTestHelper extends CommandHandler {
+            public getDefault() {
+                return super.getDefault();
+            }
+        }
+
+        for (const workspaceStateGet of [
+            () => "test",
+            () => ["test"],
+        ]) {
+            const handler = new CommandHandlerTestHelper(
+                {...input, rememberPrevious: true},
+                new UserInputContext(),
+                {
+                    ...mockExtensionContext,
+                    workspaceState: {
+                        get: workspaceStateGet,
+                    },
+                } as unknown as vscode.ExtensionContext,
+                child_process,
+            );
+
+            expect(handler.getDefault()).toStrictEqual(["test"]);
+        }
+    });
 });
 
 describe("Errors", async () => {

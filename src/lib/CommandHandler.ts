@@ -225,7 +225,12 @@ export class CommandHandler {
 
     protected getDefault() {
         if (this.args.rememberPrevious && this.args.taskId) {
-            return this.context.workspaceState.get<string[]>(this.args.taskId, []);
+            const result = this.context.workspaceState
+                .get<string | string[]>(this.args.taskId, []);
+
+            // Backwards compatibilty for before multiselect when default was
+            // saved as string not array.
+            return (typeof result === "string") ? [result] : result;
         }
 
         return [];
