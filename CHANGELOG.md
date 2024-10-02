@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.12.2] 2024-10-02
+
+- Fix backwards compatibility of default values (#110)
+
 ## [1.12.1] 2024-10-02
 
 - Fix errors with default values (#107)

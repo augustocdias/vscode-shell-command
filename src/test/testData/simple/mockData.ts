@@ -9,6 +9,7 @@ export default {
             "type": "command",
             "command": "shellCommand.execute",
             "args": {
+              "taskId": "inputTest",
               "command": "cat ${file}",
               "cwd": "${workspaceFolder}",
               "env": {
