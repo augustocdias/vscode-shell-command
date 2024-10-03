@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.12.4] 2024-10-03
+
+- Work around VSCode bug with activeItems and selectedItems (#112)
+
 ## [1.12.3] 2024-10-03
 
 - Fix custom values not being returned (#113)

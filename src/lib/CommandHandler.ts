@@ -329,8 +329,15 @@ export class CommandHandler {
             disposable = vscode.Disposable.from(...disposableLikes);
 
             picker.items = constantItems;
-            picker.activeItems = picker.items.filter(
-                (item) => defaultValues.includes((item as QuickPickItem).value));
+
+            const activeItems = [...picker.items.filter(
+                (item) => defaultValues.includes((item as QuickPickItem).value))];
+
+            // Assigning unconditionally can break selectedItems in callbacks
+            // See #112
+            if (activeItems.length) {
+                picker.activeItems = activeItems;
+            }
 
             picker.show();
         }).finally(() => {
