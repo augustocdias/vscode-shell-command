@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.12.3] 2024-10-03
+
+- Fix custom values not being returned (#113)
+- Ensure value set from VSCode callback before resolving (related to #112)
+
 ## [1.12.2] 2024-10-02
 
 - Fix backwards compatibility of default values (#110)

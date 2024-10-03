@@ -240,6 +240,14 @@ export class CommandHandler {
         await this.context.workspaceState.update(id, values);
     }
 
+    /**
+     * Transform the slected items in the quickpick list
+     */
+    static transformSelection(picker: vscode.QuickPick<vscode.QuickPickItem> | undefined) {
+        return picker?.selectedItems.map(
+            (item) => (item as QuickPickItem).value);
+    }
+
     protected async quickPick(input: QuickPickItem[]) {
         if (input.length === 0) {
             input = this.args.defaultOptions?.map((option) => ({
@@ -251,7 +259,7 @@ export class CommandHandler {
         const defaultValues = this.getDefault();
         let disposable: vscode.Disposable;
 
-        return new Promise<vscode.QuickPick<vscode.QuickPickItem> | undefined>((resolve) => {
+        return new Promise<string[] | undefined>((resolve) => {
             const picker = vscode.window.createQuickPick();
             picker.canSelectMany = this.args.multiselect!;
             picker.matchOnDescription = true;
@@ -275,16 +283,24 @@ export class CommandHandler {
                 picker,
 
                 picker.onDidAccept(() => {
-                    resolve(picker);
+                    const result = CommandHandler.transformSelection(picker);
+
+                    if (undefined !== result) {
+                        resolve(result);
+                    }
                 }),
 
                 picker.onDidHide(() => {
                     const didCancelQuickPickSession =
                         picker?.selectedItems?.length === 0 ?? true;
+                    const result = CommandHandler.transformSelection(picker);
+
                     if (didCancelQuickPickSession) {
                         resolve(undefined);
-                    } else if (this.input.id) {
-                        resolve(picker);
+                    } else if (this.input.id && (undefined !== result)) {
+                        resolve(result);
+                    } else {
+                        console.log(`onDidHide for ${this.args.taskId} got to else branch.`);
                     }
                 }),
             ];
@@ -301,8 +317,9 @@ export class CommandHandler {
                         // Vscode doesn't update unless we give it a new object.
                         picker.items = [...constantItems, {
                             label: picker.value,
+                            value: picker.value,
                             description: "(Custom)",
-                        }];
+                        } as vscode.QuickPickItem];
                     } else {
                         picker.items = constantItems;
                     }
@@ -316,9 +333,6 @@ export class CommandHandler {
                 (item) => defaultValues.includes((item as QuickPickItem).value));
 
             picker.show();
-        }).then((picker) => {
-            return picker?.selectedItems.map(
-                (item) => (item as QuickPickItem).value);
         }).finally(() => {
             disposable.dispose();
         });
