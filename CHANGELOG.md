@@ -5,6 +5,7 @@
 - Fix default value not recorded for useFirstResult / useSingleResult (#117)
 - Add support for ${taskId:} input variables
 - Do not reset user input context (#95)
+- Add workspaceFolder to executeCommand (#116)
 
 ## [1.12.4] 2024-10-03
 
