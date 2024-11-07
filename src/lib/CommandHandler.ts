@@ -146,16 +146,22 @@ export class CommandHandler {
     async handle() {
         await this.resolveArgs();
 
+        const recordInput = (value: string) => {
+            if (this.input.id && this.userInputContext) {
+                this.userInputContext.recordInput(this.input.id, value);
+            }
+            if (this.args.rememberPrevious && this.args.taskId) {
+                this.setDefault(this.args.taskId, [value]);
+            }
+        };
         const result = await this.runCommand();
         const nonEmptyInput = this.parseResult(result);
         const useFirstResult =
             this.args.useFirstResult ||
             (this.args.useSingleResult && nonEmptyInput.length === 1);
 
-        if (useFirstResult) {
-            if (this.input.id && this.userInputContext) {
-                this.userInputContext.recordInput(this.input.id, nonEmptyInput[0].value);
-            }
+            recordInput(nonEmptyInput[0].value);
+            return nonEmptyInput[0].value;
             return nonEmptyInput[0].value;
         } else {
             const selectedItems = await this.quickPick(nonEmptyInput);
@@ -166,11 +172,8 @@ export class CommandHandler {
             }
 
             const result = selectedItems.join(this.args.multiselectSeparator!);
-            this.userInputContext.recordInput(this.input.id, result);
-
-            if (this.args.rememberPrevious && this.args.taskId) {
-                this.setDefault(this.args.taskId, selectedItems);
-            }
+            recordInput(result);
+            return result;
 
             return result;
         }
