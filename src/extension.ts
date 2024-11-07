@@ -24,8 +24,4 @@ export function activate(this: any, context: vscode.ExtensionContext) {
     };
 
     context.subscriptions.push(vscode.commands.registerCommand(command, callback, this));
-
-    // Triggers a reset of the userInput context
-    context.subscriptions.push(vscode.tasks.onDidStartTask(() => userInputContext.reset()));
-    context.subscriptions.push(vscode.debug.onDidStartDebugSession(() => userInputContext.reset()));
 }
