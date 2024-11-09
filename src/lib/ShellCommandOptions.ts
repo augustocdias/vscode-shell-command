@@ -9,6 +9,7 @@ export interface ShellCommandOptions
     rememberPrevious?: boolean;
     allowCustomValues?: boolean;
     multiselect?: boolean;
+    warnOnStderr?: boolean;
     multiselectSeparator?: string;
     fieldSeparator?: string;
     description?: string;

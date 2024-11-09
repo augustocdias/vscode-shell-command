@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.13.1] 2024-11-09
+
+- Add support for warning if the command outputs on stderr (warnOnStderr)
+
 ## [1.13.0] 2024-11-09
 
 - Fix default value not recorded for useFirstResult / useSingleResult (#117)
