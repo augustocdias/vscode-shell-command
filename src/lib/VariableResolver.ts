@@ -88,7 +88,8 @@ export class VariableResolver {
             return '';
         }
         const command = match[1];
-        const result = await vscode.commands.executeCommand(command);
+        const result = await vscode.commands.executeCommand(
+            command, { workspaceFolder: this.bindConfiguration("workspaceFolder") });
         return result as string;
     }
 
