@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased] 2024-XX-XX
+
+- Fix default value not recorded for useFirstResult / useSingleResult (#117)
+- Add support for ${taskId:} input variables
+- Do not reset user input context (#95)
+
 ## [1.12.4] 2024-10-03
 
 - Work around VSCode bug with activeItems and selectedItems (#112)

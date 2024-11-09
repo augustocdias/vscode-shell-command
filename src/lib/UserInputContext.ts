@@ -1,19 +1,25 @@
 export class UserInputContext
 {
-    protected recordedInputs: { [id: string] : string; } = {};
+    protected recordedInputsByInputId: { [id: string] : string | undefined; } = {};
+    protected recordedInputsByTaskId: { [id: string] : string | undefined; } = {};
 
-    reset(): void
-    {
-        this.recordedInputs = {};
+    recordInputByInputId(inputId: string | undefined, taskValue: string | undefined): void {
+        if (inputId !== undefined) {
+            this.recordedInputsByInputId[inputId] = taskValue;
+        }
     }
 
-    recordInput(inputId: string, taskValue: string): void
-    {
-        this.recordedInputs[inputId] = taskValue;
+    recordInputByTaskId(taskId: string | undefined, taskValue: string | undefined): void {
+        if (taskId !== undefined) {
+            this.recordedInputsByTaskId[taskId] = taskValue;
+        }
     }
 
-    lookupInputValue(inputId: string): string
-    {
-        return this.recordedInputs[inputId];
+    lookupInputValueByInputId(inputId: string): string | undefined {
+        return this.recordedInputsByInputId[inputId];
+    }
+
+    lookupInputValueByTaskId(taskId: string): string | undefined {
+        return this.recordedInputsByTaskId[taskId];
     }
 }

@@ -143,7 +143,9 @@ export class CommandHandler {
             : vscode.workspace.workspaceFolders?.[this.input.workspaceIndex].uri.fsPath;
     }
 
-    async handle() {
+    // Get the result, either by showing a dropdown or taking the first / only
+    // option
+    async getResult() {
         await this.resolveArgs();
 
         const result = await this.runCommand();
@@ -153,27 +155,31 @@ export class CommandHandler {
             (this.args.useSingleResult && nonEmptyInput.length === 1);
 
         if (useFirstResult) {
-            if (this.input.id && this.userInputContext) {
-                this.userInputContext.recordInput(this.input.id, nonEmptyInput[0].value);
-            }
-            return nonEmptyInput[0].value;
+            const result = nonEmptyInput[0].value;
+            return [result];
         } else {
             const selectedItems = await this.quickPick(nonEmptyInput);
-
-            if (!selectedItems) {
-                this.userInputContext.reset();
-                return;
-            }
-
-            const result = selectedItems.join(this.args.multiselectSeparator!);
-            this.userInputContext.recordInput(this.input.id, result);
-
-            if (this.args.rememberPrevious && this.args.taskId) {
-                this.setDefault(this.args.taskId, selectedItems);
-            }
-
-            return result;
+            return selectedItems;
         }
+    }
+
+    async handle() {
+        const selectedItems = await this.getResult();
+
+        if (selectedItems === undefined) {
+            return;
+        }
+
+        if (this.args.rememberPrevious && this.args.taskId) {
+            this.setDefault(this.args.taskId, selectedItems);
+        }
+
+        const result = selectedItems.join(this.args.multiselectSeparator!);
+
+        this.userInputContext.recordInputByInputId(this.input.id, result);
+        this.userInputContext.recordInputByTaskId(this.args.taskId, result);
+
+        return result;
     }
 
     protected async runCommand() {
@@ -292,7 +298,7 @@ export class CommandHandler {
 
                 picker.onDidHide(() => {
                     const didCancelQuickPickSession =
-                        picker?.selectedItems?.length === 0 ?? true;
+                        picker?.selectedItems?.length === 0;
                     const result = CommandHandler.transformSelection(picker);
 
                     if (didCancelQuickPickSession) {

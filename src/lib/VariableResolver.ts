@@ -24,12 +24,13 @@ export class VariableResolver {
     protected configVarRegex = /config:(.+)/m;
     protected envVarRegex = /env:(.+)/m;
     protected inputVarRegex = /input:(.+)/m;
+    protected taskIdVarRegex = /taskId:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
     protected rememberedValue?: string;
-    protected userInputContext?: UserInputContext;
+    protected userInputContext: UserInputContext;
     protected input: Input;
 
-    constructor(input: Input, userInputContext?: UserInputContext,
+    constructor(input: Input, userInputContext: UserInputContext,
                 rememberedValue?: string) {
        this.userInputContext = userInputContext;
        this.rememberedValue = rememberedValue;
@@ -55,9 +56,17 @@ export class VariableResolver {
                 if (this.envVarRegex.test(value)) {
                     return this.bindEnvVariable(value);
                 }
-                if (this.userInputContext && this.inputVarRegex.test(value)) {
-                    return this.bindInputVariable(value, this.userInputContext);
+
+                const inputVar = this.inputVarRegex.exec(value);
+                if (inputVar) {
+                    return this.userInputContext.lookupInputValueByInputId(inputVar[1]) ?? '';
                 }
+
+                const taskIdVar = this.taskIdVarRegex.exec(value);
+                if (taskIdVar) {
+                    return this.userInputContext.lookupInputValueByTaskId(taskIdVar[1]) ?? '';
+                }
+
                 if (this.commandVarRegex.test(value)) {
                     // We don't replace these yet, they have to be done asynchronously
                     promises.push(this.bindCommandVariable(value));
@@ -165,21 +174,14 @@ export class VariableResolver {
 
     protected bindEnvVariable(value: string): string {
         const result = this.envVarRegex.exec(value);
+
         if (!result) {
             return '';
         }
+
         const key = result[1];
         const configuredEnv = this.input.env;
 
         return configuredEnv[key] ?? process.env[key] ?? '';
-    }
-
-    protected bindInputVariable(value: string, userInputContext: UserInputContext): string {
-        const result = this.inputVarRegex.exec(value);
-        if (!result) {
-            return '';
-        }
-
-        return userInputContext.lookupInputValue(result[1]) || '';
     }
 }
