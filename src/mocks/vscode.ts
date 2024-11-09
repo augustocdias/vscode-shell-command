@@ -92,6 +92,10 @@ export namespace window {
     export function getShowWarningMessageCalls() {
         return showWarningMessageCalls;
     }
+
+    export function resetShowWarningMessageCalls() {
+        showWarningMessageCalls.length = 0;
+    }
 }
 
 export namespace workspace {

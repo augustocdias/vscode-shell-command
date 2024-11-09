@@ -94,6 +94,7 @@ Arguments for the extension:
 * `allowCustomValues`: If true, it's possible to enter a new value that is not part of the command output. Has no effect with `useFirstResult`.
 * `multiselect`: If true, it's possible to select multiple values. They are joined by `multiselectSeparator`. Has no effect with `useFirstResult`.
 * `multiselectSeparator`: The string with which to join multiple options when `multiselect` is true (default `" "`). Has no effect without `multiselect`.
+* `warnOnStderr`: If true, a warning message is shown if the command outputs anything on stderr (default: true). Has no effect if `stdio` is not `stdout`.
 * `taskId`: Unique id to use for storing the last-used value.
 * `fieldSeparator`: the string that separates `value`, `label`, `description` and `detail` fields
 * `description`: shown as a placeholder in 'Quick Pick', provides context for the input

@@ -71,6 +71,7 @@ export class CommandHandler {
             useSingleResult: CommandHandler.parseBoolean(args.useSingleResult, false),
             rememberPrevious: CommandHandler.parseBoolean(args.rememberPrevious, false),
             allowCustomValues: CommandHandler.parseBoolean(args.allowCustomValues, false),
+            warnOnStderr: CommandHandler.parseBoolean(args.warnOnStderr, true),
             multiselect: CommandHandler.parseBoolean(args.multiselect, false),
             multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
@@ -200,23 +201,39 @@ export class CommandHandler {
         }
     }
 
-    protected parseResult({ stdout, stderr }: { stdout: string, stderr: string }): QuickPickItem[] {
-        let result = "";
+    protected parseResult(commandOutput: { stdout: string, stderr: string }): QuickPickItem[] {
+        const stdout = commandOutput.stdout.trim();
+        const stderr = commandOutput.stderr.trim();
+        let items: string[] = [];
 
         if (("stdout" == this.args.stdio) || ("both" == this.args.stdio)) {
-            result += stdout;
+            items.push(...stdout.split(this.EOL));
         }
 
         if (("stderr" == this.args.stdio) || ("both" == this.args.stdio)) {
-            result += stderr;
+            items.push(...stderr.split(this.EOL));
         }
 
-        if ((result.trim().length == 0) && (undefined === this.args.defaultOptions)) {
-            throw new ShellCommandException(`The command for input '${this.input.id}' returned empty result.`);
+        items = items.filter(item => item !== "");
+
+        if ((items.length == 0) && (undefined === this.args.defaultOptions)) {
+            let msg = `The command for input '${this.input.id}' returned empty result.`;
+
+            if (stderr) {
+                msg += ` stderr: '${stderr}'`;
+            }
+
+            throw new ShellCommandException(msg);
         }
 
-        return result
-            .split(this.EOL)
+        if ((this.args.warnOnStderr) && ("stdout" == this.args.stdio) && stderr) {
+            vscode.window.showWarningMessage(
+                `The command for input '${this.input.id}' might have errors.
+                 stderr: '${stderr}'.
+                 Hint: You can disable this with '"warnOnStderr": false'.`);
+        }
+
+        return items
             .map<QuickPickItem>((value: string) => {
                 const values = value.trim().split(this.args.fieldSeparator as string, 4);
                 return {
@@ -347,7 +364,9 @@ export class CommandHandler {
 
             picker.show();
         }).finally(() => {
-            disposable.dispose();
+            if (disposable) {
+                disposable.dispose();
+            }
         });
     }
 

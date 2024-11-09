@@ -25,6 +25,7 @@ const execFileSpy = vi.spyOn(child_process, 'execFile');
 beforeEach(() => {
     execSpy.mockClear();
     execFileSpy.mockClear();
+    mockVscode.window.resetShowWarningMessageCalls();
 });
 
 describe("Simple cases", async () => {
@@ -340,6 +341,7 @@ describe("Argument parsing", () => {
                 useFirstResult: false,
                 useSingleResult: false,
                 multiselect: false,
+                warnOnStderr: true,
                 multiselectSeparator: " ",
                 stdio: "stdout",
                 extraTestThing: 42,
