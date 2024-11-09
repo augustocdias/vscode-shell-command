@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased] 2024-XX-XX
+## [1.13.0] 2024-11-09
 
 - Fix default value not recorded for useFirstResult / useSingleResult (#117)
 - Add support for ${taskId:} input variables
