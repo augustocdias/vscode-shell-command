@@ -7,9 +7,9 @@ import { ShellCommandException } from './util/exceptions';
 // This is the type use by the vscode API
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function activate(this: any, context: vscode.ExtensionContext) {
-    const command = 'shellCommand.execute';
     const userInputContext = new UserInputContext();
-    const callback = (args: { [key: string]: unknown }) => {
+
+    const handleExecute = (args: { [key: string]: unknown }) => {
         try {
             const handler = new CommandHandler(args, userInputContext, context, subprocess);
             return handler.handle();
@@ -23,5 +23,22 @@ export function activate(this: any, context: vscode.ExtensionContext) {
         }
     };
 
-    context.subscriptions.push(vscode.commands.registerCommand(command, callback, this));
+    context.subscriptions.push(vscode.commands.registerCommand(
+        'shellCommand.execute',
+        handleExecute,
+        this,
+    ));
+
+    // Reimplementation of promptString that can be used from inputs.
+    const handlePromptString = async () => {
+        const inputValue = await vscode.window.showInputBox();
+
+        return inputValue || '';
+    };
+
+    context.subscriptions.push(vscode.commands.registerCommand(
+        'shellCommand.promptString',
+        handlePromptString,
+        this,
+    ));
 }
