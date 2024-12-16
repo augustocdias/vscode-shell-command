@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.14.0] 2024-11-09
+
+- Add support for `command:shellCommand.promptString` (#123)
+
 ## [1.13.1] 2024-11-09
 
 - Add support for warning if the command outputs on stderr (warnOnStderr)

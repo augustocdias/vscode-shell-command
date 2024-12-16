@@ -42,6 +42,16 @@ Usage example:
 }
 ```
 
+## Available Commands
+
+The extension makes two commands available:
+1. `shellCommand.execute`: Runs a system command and shows a dropdown with the returned options. See [The command `shellCommand.execute`](#the-command-shellcommandexecute)
+1. `shellCommand.promptString`: This is a reimplementation of the built-in `promptString`, but this version can be used in the command of `shellCommand.execute`. See [The command `shellCommand.promptString`](#the-command-shellcommandpromptstring)
+
+## The command `shellCommand.execute`
+
+### Field Separator
+
 By default the extension returns the exact string value that was produced by the shell command and then shown and selected in 'Quick Pick' dialog. However, sometimes it is useful to show more descriptive information than the internal string value that is returned. This can be done by specifying a `fieldSeparator` and making the shell command return lines containing multiple fields separated by that value. Supported fields are:
 
 ```
@@ -82,7 +92,7 @@ VSCode renders it like this:
 
 ![Process Picker](https://github.com/augustocdias/vscode-shell-command/raw/master/process-picker.png)
 
-Arguments for the extension:
+### Arguments for `shellCommand.execute`
 
 * `command`: the system command to be executed (must be in PATH). If given as an array, the elements are joined by spaces.
 * `commandArgs`: if provided, `command` is interpreted as the binary to run and `commandArgs` are the arguments. This is useful if the binary you want to run has spaces (like `C:\Program Files\*`). This translates to `child_process.execFileSync(command, commandArgs)`.
@@ -113,6 +123,8 @@ As of today, the extension supports variable substitution for:
 * multi-folder workspace support: `${workspaceFolder}` (the folder whose `.vscode/tasks.json` defined the given task), `${workspaceFolder[1]}` (a specific folder by index), and `${workspaceFolder:name}` (a specific folder by name)
 
 For a complete vscode variables documentation please refer to [vscode variables](https://code.visualstudio.com/docs/editor/variables-reference).
+
+## Examples of the command `shellCommand.execute`
 
 Dependent Input Variables Usage example:
 
@@ -174,6 +186,39 @@ Example with `commandArgs`:
     }
 }
 ```
+
+
+## The command `shellCommand.promptString`
+
+The only reason to use `shellCommand.promptString` over `promptString` is that the former works inside of a `shellCommand.execute` command.
+
+Here is an example of a `launch.json` configuration where the user is prompted to select a program to debug based on the output of `findProgram.sh`.
+If some additional search is desired, the arguments of `findProgram.sh` can include `shellCommand.promptString`.
+Note that it's not possible to put `${input:searchExpression}` where `searchExpression` is an input with the built-in `promptString` type. See [Limitations](#Limitations).
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test",
+            "request": "launch",
+            "program": "${input:pickProgram}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pickProgram",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "findProgram.sh --search ${command:shellCommand.promptString}"
+            }
+        }
+    ]
+}
+```
+
+## Limitations
 
 There are a few limitations to be aware of:
 
