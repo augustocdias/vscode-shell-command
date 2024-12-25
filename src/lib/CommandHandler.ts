@@ -295,7 +295,8 @@ export class CommandHandler {
             // Compute all constant (non custom) picker items.
             const constantItems = input.map((item) => ({
                 label: item.label,
-                description: defaultValues.includes(item.value)
+                description: (!this.args.multiselect &&
+                              defaultValues.includes(item.value))
                     ? `${item.description} (Default)`
                     : item.description,
                 detail: item.detail,
@@ -359,7 +360,11 @@ export class CommandHandler {
             // Assigning unconditionally can break selectedItems in callbacks
             // See #112
             if (activeItems.length) {
-                picker.activeItems = activeItems;
+                if (this.args.multiselect) {
+                    picker.selectedItems = activeItems;
+                } else {
+                    picker.activeItems = activeItems;
+                }
             }
 
             picker.show();

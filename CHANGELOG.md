@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.14.1] 2024-12-24
+
+- Fix bug with multiselect active vs selected (#127)
+
 ## [1.14.0] 2024-11-09
 
 - Add support for `command:shellCommand.promptString` (#123)
