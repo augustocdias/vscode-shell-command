@@ -115,6 +115,10 @@ VSCode renders it like this:
 As of today, the extension supports variable substitution for:
 
 * a subset of predefined variables like `file`, `fileDirName`, `fileBasenameNoExtension`, `fileBasename`, `lineNumber`, `extension`, `workspaceFolder` and `workspaceFolderBasename`, pattern: `${variable}`
+* an arbitrary value via `prompt` (combine options using `&` like URL query strings):
+    * `${prompt}` to show an input box for an arbitrary value
+    * `${prompt:rememberPrevious=false}` to disable the default action of initializing the input box with the previous value
+    * `${prompt:prompt=Custom prompt text}` to configure the label of the input box to show `Custom prompt text`
 * the remembered value (the default value when `rememberPrevious` is true), available as `${rememberedValue}`
 * all config variables, pattern: `${config:variable}`
 * all environment variables (`tasks.json` `options.env` with fallback to parent process), pattern: `${env:variable}`

@@ -31,6 +31,8 @@ export function activate(this: any, context: vscode.ExtensionContext) {
 
     // Reimplementation of promptString that can be used from inputs.
     const handlePromptString = async () => {
+        vscode.window.showWarningMessage(
+            'shellCommand.promptString is deprecated. Please use `${prompt}`.');
         const inputValue = await vscode.window.showInputBox();
 
         return inputValue || '';

@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as querystring from 'querystring';
+
 import { UserInputContext } from './UserInputContext';
+import { parseBoolean } from './options';
 
 export type Input = {
     command: "shellCommand.execute";
@@ -17,6 +20,25 @@ export type Input = {
     env: Record<string, string>;
 }
 
+type PromptOptions = {
+    rememberPrevious: boolean;
+    prompt?: string;
+}
+
+function zip<A, B>(a: A[], b: B[]): [A, B][] {
+    return a.map(function(e, i) {
+        return [e, b[i]];
+    });
+}
+
+function resolvePromptOptions(queryString: string): PromptOptions {
+    const parsed = querystring.decode(queryString);
+    return {
+        prompt: (typeof parsed.prompt === "string") ? parsed.prompt : undefined,
+        rememberPrevious: parseBoolean(parsed.rememberPrevious, true),
+    };
+}
+
 export class VariableResolver {
     protected expressionRegex = /\$\{(.*?)\}/gm;
     protected workspaceIndexedRegex = /workspaceFolder\[(\d+)\]/gm;
@@ -26,24 +48,33 @@ export class VariableResolver {
     protected inputVarRegex = /input:(.+)/m;
     protected taskIdVarRegex = /taskId:(.+)/m;
     protected commandVarRegex = /command:(.+)/m;
+    protected promptVarRegex = /prompt(?::(.*)|)/m;
     protected rememberedValue?: string;
+    protected context: vscode.ExtensionContext;
     protected userInputContext: UserInputContext;
     protected input: Input;
 
     constructor(input: Input, userInputContext: UserInputContext,
+                context: vscode.ExtensionContext,
                 rememberedValue?: string) {
        this.userInputContext = userInputContext;
        this.rememberedValue = rememberedValue;
        this.input = input;
+       this.context = context;
     }
 
     async resolve(str: string): Promise<string | undefined> {
-        const promises: Promise<string | undefined>[] = [];
+        // Sort by index (descending)
+        // The indices will change once we start substituting the replacements,
+        // which are not necessarily the same length
+        const matches = [...str.matchAll(this.expressionRegex)]
+            .sort((a, b) => b.index - a.index);
 
         // Process the synchronous string interpolations
-        let result = str.replace(
-            this.expressionRegex,
-            (_: string, value: string): string => {
+        const data = await Promise.all(matches.map(
+            (match: RegExpExecArray): string | Thenable<string | undefined> => {
+                const value = match[1];
+
                 if (this.workspaceIndexedRegex.test(value)) {
                     return this.bindIndexedFolder(value);
                 }
@@ -59,27 +90,36 @@ export class VariableResolver {
 
                 const inputVar = this.inputVarRegex.exec(value);
                 if (inputVar) {
-                    return this.userInputContext.lookupInputValueByInputId(inputVar[1]) ?? '';
+                    return this.userInputContext
+                        .lookupInputValueByInputId(inputVar[1]) ?? '';
                 }
 
                 const taskIdVar = this.taskIdVarRegex.exec(value);
                 if (taskIdVar) {
-                    return this.userInputContext.lookupInputValueByTaskId(taskIdVar[1]) ?? '';
+                    return this.userInputContext
+                        .lookupInputValueByTaskId(taskIdVar[1]) ?? '';
                 }
 
                 if (this.commandVarRegex.test(value)) {
-                    // We don't replace these yet, they have to be done asynchronously
-                    promises.push(this.bindCommandVariable(value));
-                    return _;
+                    return this.bindCommandVariable(value);
                 }
+
+                const promptVar = this.promptVarRegex.exec(value);
+                if (promptVar) {
+                    return this.bindPrompt(
+                        resolvePromptOptions(promptVar[1]), match);
+                }
+
                 return this.bindConfiguration(value);
             },
-        );
+        ));
 
-        // Process the async string interpolations
-        const data = await Promise.all(promises) as string[];
-        result = result.replace(this.expressionRegex, () => data.shift() ?? '');
-        return result === '' ? undefined : result;
+        const result = zip(matches, data).reduce((str, [match, replacement]) => {
+            return str.slice(0, match.index) + replacement +
+                str.slice(match.index + match[0].length);
+        }, str);
+
+        return result;
     }
 
     protected async bindCommandVariable(value: string): Promise<string> {
@@ -91,6 +131,25 @@ export class VariableResolver {
         const result = await vscode.commands.executeCommand(
             command, { workspaceFolder: this.bindConfiguration("workspaceFolder") });
         return result as string;
+    }
+
+    protected async bindPrompt(
+        promptOptions: PromptOptions,
+        match: RegExpExecArray,
+    ): Promise<string> {
+        const taskId = this.input.args.taskId ?? this.input.id;
+        const promptId = `prompt/${taskId}_${match.index}`;
+        const prevValue = this.context.workspaceState.get<string>(promptId, '');
+        const initialValue = promptOptions.rememberPrevious ? prevValue : '';
+
+        const result = (await vscode.window.showInputBox({
+            value: initialValue,
+            prompt: promptOptions.prompt,
+        })) ?? '';
+
+        this.context.workspaceState.update(promptId, result);
+
+        return result;
     }
 
     protected bindIndexedFolder(value: string): string {

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.15.0] 2025-01-02
+
+- Add variable resolver for ${prompt} (#123)
+
 ## [1.14.1] 2024-12-24
 
 - Fix bug with multiselect active vs selected (#127)
