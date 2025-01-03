@@ -7,6 +7,7 @@ import { describe, expect, test, vi, beforeEach } from 'vitest';
 import { ShellCommandOptions } from "./ShellCommandOptions";
 import { CommandHandler } from './CommandHandler';
 import { UserInputContext } from './UserInputContext';
+import { parseBoolean } from './options';
 import * as mockVscode from '../mocks/vscode';
 
 const mockExtensionContext = {
@@ -349,21 +350,21 @@ describe("Argument parsing", () => {
     });
 
     test("parseBoolean", () => {
-        expect(CommandHandler.parseBoolean(undefined, true)).toBe(true);
-        expect(CommandHandler.parseBoolean(undefined, false)).toBe(false);
+        expect(parseBoolean(undefined, true)).toBe(true);
+        expect(parseBoolean(undefined, false)).toBe(false);
 
-        expect(CommandHandler.parseBoolean(false, true)).toBe(false);
-        expect(CommandHandler.parseBoolean(true, false)).toBe(true);
+        expect(parseBoolean(false, true)).toBe(false);
+        expect(parseBoolean(true, false)).toBe(true);
 
-        expect(CommandHandler.parseBoolean("false", true)).toBe(false);
-        expect(CommandHandler.parseBoolean("fALse", true)).toBe(false);
-        expect(CommandHandler.parseBoolean("true", false)).toBe(true);
-        expect(CommandHandler.parseBoolean("tRUe", false)).toBe(true);
+        expect(parseBoolean("false", true)).toBe(false);
+        expect(parseBoolean("fALse", true)).toBe(false);
+        expect(parseBoolean("true", false)).toBe(true);
+        expect(parseBoolean("tRUe", false)).toBe(true);
 
         expect(mockVscode.window.getShowWarningMessageCalls().length).toBe(0);
 
-        expect(CommandHandler.parseBoolean(42, true)).toBe(true);
-        expect(CommandHandler.parseBoolean(42, false)).toBe(false);
+        expect(parseBoolean(42, true)).toBe(true);
+        expect(parseBoolean(42, false)).toBe(false);
 
         expect(mockVscode.window.getShowWarningMessageCalls().length).toBe(2);
     });

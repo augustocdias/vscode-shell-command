@@ -1,5 +1,6 @@
 import * as path from "path";
 
+import * as vscode from "vscode";
 import { expect, test } from 'vitest';
 
 import { VariableResolver } from './VariableResolver';
@@ -15,7 +16,13 @@ test('variable types', async () => {
     const input = {...tasksJson.inputs[0], workspaceIndex: 0};
     const rememberedValue = "Back in my day";
     const userInputContext = new UserInputContext();
-    const resolver = new VariableResolver(input, userInputContext, rememberedValue);
+    const context = {} as unknown as vscode.ExtensionContext;
+    const resolver = new VariableResolver(
+        input,
+        userInputContext,
+        context,
+        rememberedValue,
+    );
 
     for (const [key, value] of Object.entries({
         "workspaceFolder": workspaceFolder,

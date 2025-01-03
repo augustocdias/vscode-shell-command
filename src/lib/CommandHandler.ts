@@ -5,6 +5,7 @@ import { VariableResolver, Input } from "./VariableResolver";
 import { ShellCommandException } from "../util/exceptions";
 import { UserInputContext } from "./UserInputContext";
 import { QuickPickItem } from "./QuickPickItem";
+import { parseBoolean } from "./options";
 
 function promisify<T extends unknown[], R>(fn: (...args: [...T, (err: Error | null, stdout: string, stderr: string) => void]) => R) {
     return (...args: [...T]) =>
@@ -67,40 +68,23 @@ export class CommandHandler {
 
     static resolveArgs(args: { [key: string]: unknown }): ShellCommandOptions {
         return {
-            useFirstResult: CommandHandler.parseBoolean(args.useFirstResult, false),
-            useSingleResult: CommandHandler.parseBoolean(args.useSingleResult, false),
-            rememberPrevious: CommandHandler.parseBoolean(args.rememberPrevious, false),
-            allowCustomValues: CommandHandler.parseBoolean(args.allowCustomValues, false),
-            warnOnStderr: CommandHandler.parseBoolean(args.warnOnStderr, true),
-            multiselect: CommandHandler.parseBoolean(args.multiselect, false),
+            useFirstResult: parseBoolean(args.useFirstResult, false),
+            useSingleResult: parseBoolean(args.useSingleResult, false),
+            rememberPrevious: parseBoolean(args.rememberPrevious, false),
+            allowCustomValues: parseBoolean(args.allowCustomValues, false),
+            warnOnStderr: parseBoolean(args.warnOnStderr, true),
+            multiselect: parseBoolean(args.multiselect, false),
             multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
             ...args,
         } as ShellCommandOptions;
     }
 
-    static parseBoolean(value: unknown, defaultValue: boolean): boolean {
-        if (value === undefined) {
-            return defaultValue;
-        }
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            if (value.toLowerCase() === 'true') {
-                return true;
-            } else if (value.toLowerCase() === 'false') {
-                return false;
-            }
-        }
-        vscode.window.showWarningMessage(`Cannot parse the boolean value: ${value}, use the default: ${defaultValue}`);
-        return defaultValue;
-    }
-
     protected async resolveArgs() {
         const resolver = new VariableResolver(
             this.input,
             this.userInputContext,
+            this.context,
             this.getDefault().join(this.args.multiselectSeparator));
 
         const command = await resolver.resolve(this.command);
