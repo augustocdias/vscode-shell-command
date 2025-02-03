@@ -111,6 +111,7 @@ VSCode renders it like this:
 * `maxBuffer`: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
 * `defaultOptions`: if the command doesn't return anything, the list provided will be set for the user to choose from
 * `stdio`: specifies whether to get the results from `stdout`, `stderr`, or `both`. Default is `stdout`.
+* `completeInput`: If true this `args` argument is complete. We do not search the workspaces for an input with this `command`. Useful if command called from another extension. Default is `false`.
 
 As of today, the extension supports variable substitution for:
 

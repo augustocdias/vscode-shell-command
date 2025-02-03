@@ -59,7 +59,7 @@ export class CommandHandler {
         this.command = command;
         this.commandArgs = this.args.commandArgs as string[] | undefined;
 
-        this.input = this.resolveTaskToInput(this.args.taskId);
+        this.input = args.completeInput ? {args} : this.resolveTaskToInput(this.args.taskId);
 
         this.userInputContext = userInputContext;
         this.context = context;
@@ -125,6 +125,7 @@ export class CommandHandler {
 
         this.args.cwd = this.args.cwd
             ? await resolver.resolve(this.args.cwd ?? '')
+            : this.input.args.completeInput ? undefined
             : vscode.workspace.workspaceFolders?.[this.input.workspaceIndex].uri.fsPath;
     }
 

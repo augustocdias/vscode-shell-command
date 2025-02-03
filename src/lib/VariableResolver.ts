@@ -13,6 +13,7 @@ export type Input = {
         commandArgs: string[] | undefined;
         cwd: string;
         env: Record<string, string>;
+        completeInput: boolean | undefined;
     },
     id: string;
     type: string;
