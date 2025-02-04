@@ -194,6 +194,9 @@ Example with `commandArgs`:
 
 ## The command `shellCommand.promptString`
 
+> [!WARNING]
+> This command is deprecated and will be removed in the next major version.
+
 The only reason to use `shellCommand.promptString` over `promptString` is that the former works inside of a `shellCommand.execute` command.
 
 Here is an example of a `launch.json` configuration where the user is prompted to select a program to debug based on the output of `findProgram.sh`.
