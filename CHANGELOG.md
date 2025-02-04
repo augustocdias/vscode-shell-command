@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.18.3] 2025-05-28
+
+- Extracted the `taskId` criteria while searching the input. (#131)
+
 ## [1.18.2] 2025-05-15
 
 - Fix task arguments handling to prevent incorrect values
