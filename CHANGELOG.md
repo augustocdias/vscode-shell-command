@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.15.1] 2025-02-04
+
+- Extracted the `taskId` criteria while searching the input. (#131)
+
 ## [1.15.0] 2025-01-02
 
 - Add variable resolver for ${prompt} (#123)
