@@ -422,10 +422,16 @@ export class CommandHandler {
 
         // Go through the generator and return the first match
         for (const input of getAllInputs()) {
-            const command = CommandHandler.resolveCommand(input?.args?.command);
-            if (command === this.command && input?.args?.taskId === taskId &&
-                CommandHandler.compareCommandArgs(this.commandArgs, input?.args?.commandArgs)) {
-                return input;
+            if (taskId) {
+                if (input?.args?.taskId === taskId) {
+                    return input;
+                }
+            } else {
+                const command = CommandHandler.resolveCommand(input?.args?.command);
+                if (command === this.command &&
+                    CommandHandler.compareCommandArgs(this.commandArgs, input?.args?.commandArgs)) {
+                    return input;
+                }
             }
         }
 
