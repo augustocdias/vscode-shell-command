@@ -100,12 +100,13 @@ VSCode renders it like this:
 * `env`: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * `useFirstResult`: skip 'Quick Pick' dialog and use first result returned from the command
 * `useSingleResult`: skip 'Quick Pick' dialog and use the single result if only one returned from the command
-* `rememberPrevious`: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskId to be set**)
+* `rememberPrevious`: remember the value you previously selected and default to it the next time (default false) (:warning: **need taskId or rememberAs to be set**)
 * `allowCustomValues`: If true, it's possible to enter a new value that is not part of the command output. Has no effect with `useFirstResult`.
 * `multiselect`: If true, it's possible to select multiple values. They are joined by `multiselectSeparator`. Has no effect with `useFirstResult`.
 * `multiselectSeparator`: The string with which to join multiple options when `multiselect` is true (default `" "`). Has no effect without `multiselect`.
 * `warnOnStderr`: If true, a warning message is shown if the command outputs anything on stderr (default: true). Has no effect if `stdio` is not `stdout`.
 * `taskId`: Unique id to use for storing the last-used value.
+* `rememberAs`: Specify the `taskId` of another input to share history with that input.
 * `fieldSeparator`: the string that separates `value`, `label`, `description` and `detail` fields
 * `description`: shown as a placeholder in 'Quick Pick', provides context for the input
 * `maxBuffer`: largest amount of data in bytes allowed on stdout. Default is 1024 * 1024. If exceeded ENOBUFS error will be displayed
@@ -132,7 +133,7 @@ For a complete vscode variables documentation please refer to [vscode variables]
 
 Dependent Input Variables Usage example:
 
-```json
+```jsonc
 {
     "version": "2.0.0",
     "tasks": [
@@ -165,7 +166,7 @@ Dependent Input Variables Usage example:
 ```
 
 Example with `commandArgs`:
-```json
+```jsonc
 {
     "tasks": {
         "version": "2.0.0",
@@ -191,6 +192,49 @@ Example with `commandArgs`:
 }
 ```
 
+Example with `rememberAs`:
+```jsonc
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Main command",
+            "command": "ls ${input:mainCommand}",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "label": "Special command",
+            "command": "ls ${input:specialCommand}",
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "mainCommand",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "ls -la",
+                "taskId": "mainCommand",
+                "rememberPrevious": true
+            }
+        },
+        {
+            "id": "specialCommand",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "ls -lah",
+                "taskId": "specialCommand",
+                "rememberAs": "mainCommand",  // <--- Saves selection as default value for mainCommand
+                "rememberPrevious": true      //      Also works for `${taskId:mainCommand}` variable
+            }
+        },
+    ]
+}
+```
 
 ## The command `shellCommand.promptString`
 
