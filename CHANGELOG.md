@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.16.1] 2025-02-04
+
+- Extracted the `taskId` criteria while searching the input. (#131)
+
 ## [Unreleased] xxxx-xx-xx
 
 - Make input history persistent (#140)

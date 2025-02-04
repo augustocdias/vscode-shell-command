@@ -466,8 +466,14 @@ export class CommandHandler {
                 duplicateTaskIds.add(input.args.taskId);
             }
 
-            if (input.args.command === this.command &&
-                input?.args?.taskId === taskId &&
+            // FIXME: Aside of the buisness-logic of the program,
+            //        the assigning to the `result` may occur several times here.
+            if (taskId) {
+                if (input?.args?.taskId === taskId) {
+                    result = input;
+                }
+            }
+            else if (input.args.command === this.command &&
                 CommandHandler.compareCommandArgs(this.commandArgs,
                                                   input?.args?.commandArgs)) {
                   result = input;
