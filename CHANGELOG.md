@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.16.0] 2025-02-04
+
+- Add `rememberAs` field to share history between inputs.
+
 ## [1.15.0] 2025-01-02
 
 - Add variable resolver for ${prompt} (#123)

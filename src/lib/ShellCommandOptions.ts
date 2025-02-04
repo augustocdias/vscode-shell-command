@@ -15,6 +15,7 @@ export interface ShellCommandOptions
     description?: string;
     maxBuffer?: number;
     taskId?: string;
+    rememberAs?: string;
     defaultOptions?: [string];
     stdio?: "stdout" | "stderr" | "both";
 }

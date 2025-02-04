@@ -28,6 +28,7 @@ export class CommandHandler {
     protected input: Input;
     protected command: string;
     protected commandArgs: string[] | undefined;
+    protected rememberKey: string | undefined;
     protected subprocess: typeof child_process;
 
     constructor(args: { [key: string]: unknown },
@@ -64,6 +65,9 @@ export class CommandHandler {
         this.userInputContext = userInputContext;
         this.context = context;
         this.subprocess = subprocess;
+
+        // key under which to remember the value.
+        this.rememberKey = this.args.rememberAs ?? this.args.taskId;
     }
 
     static resolveArgs(args: { [key: string]: unknown }): ShellCommandOptions {
@@ -109,9 +113,9 @@ export class CommandHandler {
             }
         }
 
-        if (this.args.rememberPrevious && this.args.taskId === undefined) {
+        if (this.args.rememberPrevious && !this.rememberKey) {
             throw new ShellCommandException(
-                "You need to specify a taskId when using rememberPrevious=true",
+                "You need to specify 'taskId' or 'rememberAs' when using rememberPrevious=true",
             );
         }
 
@@ -155,14 +159,14 @@ export class CommandHandler {
             return;
         }
 
-        if (this.args.rememberPrevious && this.args.taskId) {
-            this.setDefault(this.args.taskId, selectedItems);
+        if (this.args.rememberPrevious && this.rememberKey) {
+            this.setDefault(this.rememberKey, selectedItems);
         }
 
         const result = selectedItems.join(this.args.multiselectSeparator!);
 
         this.userInputContext.recordInputByInputId(this.input.id, result);
-        this.userInputContext.recordInputByTaskId(this.args.taskId, result);
+        this.userInputContext.recordInputByTaskId(this.rememberKey, result);
 
         return result;
     }
@@ -180,12 +184,16 @@ export class CommandHandler {
             const execFile = promisify(this.subprocess.execFile);
             return await execFile(this.command, this.commandArgs, options);
         } else {
-            const exec = promisify<[string, child_process.ExecOptionsWithStringEncoding], child_process.ChildProcess>(this.subprocess.exec);
+            const exec = promisify<
+                [string, child_process.ExecOptionsWithStringEncoding],
+                child_process.ChildProcess
+            >(this.subprocess.exec);
             return exec(this.command, options);
         }
     }
 
-    protected parseResult(commandOutput: { stdout: string, stderr: string }): QuickPickItem[] {
+    protected parseResult(commandOutput: { stdout: string, stderr: string }):
+        QuickPickItem[] {
         const stdout = commandOutput.stdout.trim();
         const stderr = commandOutput.stderr.trim();
         let items: string[] = [];
@@ -231,9 +239,9 @@ export class CommandHandler {
     }
 
     protected getDefault() {
-        if (this.args.rememberPrevious && this.args.taskId) {
+        if (this.args.rememberPrevious && this.rememberKey) {
             const result = this.context.workspaceState
-                .get<string | string[]>(this.args.taskId, []);
+                .get<string | string[]>(this.rememberKey, []);
 
             // Backwards compatibilty for before multiselect when default was
             // saved as string not array.
@@ -360,8 +368,8 @@ export class CommandHandler {
     }
 
     // The command can be given as a string or array of strings.
-    static resolveCommand(command: unknown) {
-        return Array.isArray(command) ? command.join(' ') : command;
+    static resolveCommand(command: unknown): string {
+        return Array.isArray(command) ? command.join(' ') : command as string;
     }
 
     // Compare two `commandArgs` parameters.
