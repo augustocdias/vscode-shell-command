@@ -15,8 +15,8 @@ test('variable types', async () => {
 
     const input = {...tasksJson.inputs[0], workspaceIndex: 0};
     const rememberedValue = "Back in my day";
-    const userInputContext = new UserInputContext();
     const context = {} as unknown as vscode.ExtensionContext;
+    const userInputContext = new UserInputContext(context);
     const resolver = new VariableResolver(
         input,
         userInputContext,

@@ -7,7 +7,7 @@ import { ShellCommandException } from './util/exceptions';
 // This is the type use by the vscode API
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function activate(this: any, context: vscode.ExtensionContext) {
-    const userInputContext = new UserInputContext();
+    const userInputContext = new UserInputContext(context);
 
     const handleExecute = (args: { [key: string]: unknown }) => {
         try {
