@@ -3,6 +3,7 @@
 ## [Unreleased] xxxx-xx-xx
 
 - Make input history persistent (#140)
+- Enforce unique taskId (#131)
 
 ## [1.16.0] 2025-02-04
 

@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Echo Project File",
+      "type": "shell",
+      "command": "echo ${input:inputTest}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "inputTest2",
+      "type": "command",
+      "command": "shellCommand.execute",
+      "args": {
+        "taskId": "inputTest",
+        "command": "echo inputTest2",
+        "multiselect": true,
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "WORKSPACE": "${workspaceFolder[0]}",
+          "FILE": "${file}",
+          "PROJECT": "${workspaceFolderBasename}"
+        }
+      }
+    },
+    {
+      "id": "inputTest",
+      "type": "command",
+      "command": "shellCommand.execute",
+      "args": {
+        "taskId": "inputTest",
+        "rememberAs": "inputTest",
+        "rememberPrevious": true,
+        "command": "echo inputTest",
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "WORKSPACE": "${workspaceFolder[0]}",
+          "FILE": "${file}",
+          "PROJECT": "${workspaceFolderBasename}"
+        }
+      }
+    }
+  ]
+}
