@@ -14,7 +14,11 @@ const mockExtensionContext = {
     workspace: {
         workspaceFolders: {
         },
-    }
+    },
+    workspaceState: {
+        get: (_key: string) => undefined,
+        update: <T>(_key: string, _value: T) => undefined,
+    },
 };
 
 vi.mock("child_process", async (importOriginal) => ({
@@ -39,10 +43,11 @@ describe("Simple cases", async () => {
     test("README example", async () => {
         mockVscode.setMockData(mockData);
         const input = tasksJson.inputs[0].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
         const handler = new CommandHandler(
             {...input, useFirstResult: true},
-            new UserInputContext(),
-            mockExtensionContext as unknown as vscode.ExtensionContext,
+            new UserInputContext(context),
+            context,
             child_process,
         );
 
@@ -73,11 +78,12 @@ describe("Simple cases", async () => {
             useFirstResult: true,
             taskId: "inputTest",
         };
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
 
         const handler = new CommandHandler(
             args,
-            new UserInputContext(),
-            mockExtensionContext as unknown as vscode.ExtensionContext,
+            new UserInputContext(context),
+            context,
             child_process,
         );
 
@@ -125,10 +131,11 @@ describe("Multiple workspaces", async () => {
             mockVscode.setMockData((await import(path.join(testDataPath, "mockData.ts"))).default);
 
             const input = inputs[taskId].args;
+            const context = mockExtensionContext as unknown as vscode.ExtensionContext;
             const handler = new CommandHandler(
                 input,
-                new UserInputContext(),
-                mockExtensionContext as unknown as vscode.ExtensionContext,
+                new UserInputContext(context),
+                context,
                 child_process,
             );
 
@@ -159,10 +166,11 @@ test("Command variable interop", async () => {
 
     mockVscode.setMockData(mockData);
     const input = tasksJson.inputs[0].args.command.bazelTargets.args;
+    const context = mockExtensionContext as unknown as vscode.ExtensionContext;
     const handler = new CommandHandler(
         input,
-        new UserInputContext(),
-        mockExtensionContext as unknown as vscode.ExtensionContext,
+        new UserInputContext(context),
+        context,
         child_process,
     );
 
@@ -191,10 +199,11 @@ test("commandArgs", async () => {
 
     mockVscode.setMockData(mockData);
     const input = tasksJson.inputs[0].args;
+    const context = mockExtensionContext as unknown as vscode.ExtensionContext;
     const handler = new CommandHandler(
         input,
-        new UserInputContext(),
-        mockExtensionContext as unknown as vscode.ExtensionContext,
+        new UserInputContext(context),
+        context,
         child_process,
     );
 
@@ -225,6 +234,7 @@ test("stdio", async () => {
     const input = tasksJson.inputs[0].args;
     const expectationStdout = expect.objectContaining({ value: "this is on stdout" });
     const expectationStderr = expect.objectContaining({ value: "this is on stderr" });
+    const context = mockExtensionContext as unknown as vscode.ExtensionContext;
 
     for (const { setting, expectation } of [
         { setting: "stdout", expectation: [ expectationStdout ] },
@@ -236,8 +246,8 @@ test("stdio", async () => {
 
         const handler = new CommandHandler(
             { ...input, stdio: setting },
-            new UserInputContext(),
-            mockExtensionContext as unknown as vscode.ExtensionContext,
+            new UserInputContext(context),
+            context,
             child_process,
         );
 
@@ -258,13 +268,14 @@ test("stdio", async () => {
 });
 
 describe("Workspace state", () => {
-    test("It should return an array even if the saved value is a string", async () => {
+    test("Test remembered default selection", async () => {
         const testDataPath = path.join(__dirname, "../test/testData/simple");
 
         const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
         const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
         mockVscode.setMockData(mockData);
         const input = tasksJson.inputs[0].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
 
         class CommandHandlerTestHelper extends CommandHandler {
             public getDefault() {
@@ -273,12 +284,11 @@ describe("Workspace state", () => {
         }
 
         for (const workspaceStateGet of [
-            () => "test",
             () => ["test"],
         ]) {
             const handler = new CommandHandlerTestHelper(
                 {...input, rememberPrevious: true},
-                new UserInputContext(),
+                new UserInputContext(context),
                 {
                     ...mockExtensionContext,
                     workspaceState: {
@@ -302,10 +312,11 @@ describe("Errors", async () => {
 
         mockVscode.setMockData(mockData);
         const input = tasksJson.inputs[0].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
         const handler = new CommandHandler(
             input,
-            new UserInputContext(),
-            mockExtensionContext as unknown as vscode.ExtensionContext,
+            new UserInputContext(context),
+            context,
             child_process,
         );
 
@@ -321,10 +332,11 @@ describe("Errors", async () => {
 
         mockVscode.setMockData(mockData);
         const input = tasksJson.inputs[1].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
         const handler = new CommandHandler(
             input,
-            new UserInputContext(),
-            mockExtensionContext as unknown as vscode.ExtensionContext,
+            new UserInputContext(context),
+            context,
             child_process,
         );
 

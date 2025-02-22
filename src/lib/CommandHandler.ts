@@ -240,19 +240,16 @@ export class CommandHandler {
 
     protected getDefault() {
         if (this.args.rememberPrevious && this.rememberKey) {
-            const result = this.context.workspaceState
-                .get<string | string[]>(this.rememberKey, []);
-
-            // Backwards compatibilty for before multiselect when default was
-            // saved as string not array.
-            return (typeof result === "string") ? [result] : result;
+            return this.context.workspaceState.get<string[]>(
+                `CommandHandler/defaultSelection/${this.rememberKey}`, []);
         }
 
         return [];
     }
 
     protected async setDefault(id: string, values: string[]) {
-        await this.context.workspaceState.update(id, values);
+        await this.context.workspaceState.update(
+            `CommandHandler/defaultSelection/${id}`, values);
     }
 
     /**
