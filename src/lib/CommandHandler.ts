@@ -425,13 +425,62 @@ export class CommandHandler {
             yield* getSectionInputs("tasks");
         }
 
-        // Go through the generator and return the first match
-        for (const input of getAllInputs()) {
-            const command = CommandHandler.resolveCommand(input?.args?.command);
-            if (command === this.command && input?.args?.taskId === taskId &&
-                CommandHandler.compareCommandArgs(this.commandArgs, input?.args?.commandArgs)) {
-                return input;
+        const allInputs = [...getAllInputs()].map(
+            ({ args: { command, ...args }, ...rest }) => ({
+                args: {
+                    command: CommandHandler.resolveCommand(command),
+                    ...args,
+                },
+                ...rest,
+            }));
+
+        let result: Input | undefined = undefined;
+        const taskIdMap: Record<string, Input> = {};
+        const duplicateTaskIds = new Set<string>();
+
+        function isTaskIdUnique(input: Input) {
+            const taskId = input.args.taskId;
+
+            if (undefined === taskId) {
+                return true;
             }
+
+            const other = taskIdMap[taskId];
+            taskIdMap[taskId] = input;
+
+            if (undefined === other) {
+                return true;
+            }
+
+            // Inputs are not marked as duplicate if they have the same command
+            // and command args. It can happen that we see the same input twice
+            // because of workspaceFolders. We cannot detect this.
+            return input.args.command === other.args.command &&
+                CommandHandler.compareCommandArgs(input.args.commandArgs,
+                                                   other.args.commandArgs);
+        }
+
+        // Go through the generator and return the first match
+        for (const input of allInputs) {
+            if (false === isTaskIdUnique(input)) {
+                duplicateTaskIds.add(input.args.taskId);
+            }
+
+            if (input.args.command === this.command &&
+                input?.args?.taskId === taskId &&
+                CommandHandler.compareCommandArgs(this.commandArgs,
+                                                  input?.args?.commandArgs)) {
+                  result = input;
+            }
+        }
+
+        if (0 < duplicateTaskIds.size) {
+            vscode.window.showWarningMessage(
+                `Found duplicate 'taskIds'. This field must be unique. Expect strange behaviour. If you are trying to share a remembered value between tasks, please use 'rememberAs'. Duplicate taskIds: ${[...duplicateTaskIds].join(", ")}`);
+        }
+
+        if (undefined !== result) {
+            return result;
         }
 
         throw new ShellCommandException(`Could not find input with command '${this.command}' and taskId '${taskId}'.`);

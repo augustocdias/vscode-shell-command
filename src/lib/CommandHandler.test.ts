@@ -190,6 +190,30 @@ test("Command variable interop", async () => {
     );
 });
 
+test("It should detect duplicate taskIds", async () => {
+    const testDataPath = path.join(__dirname, "../test/testData/duplicateTaskid");
+
+    const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+    const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+    mockVscode.setMockData(mockData);
+    const input = tasksJson.inputs[0].args;
+    const context = mockExtensionContext as unknown as vscode.ExtensionContext;
+    const handler = new CommandHandler(
+        {...input, useFirstResult: true},
+        new UserInputContext(context),
+        context,
+        child_process,
+    );
+
+    await handler.handle();
+
+    expect(execFileSpy).toHaveBeenCalledTimes(0);
+    expect(execSpy).toHaveBeenCalledTimes(1);
+    expect(mockVscode.window.getShowWarningMessageCalls().length).toBe(1);
+    expect(mockVscode.window.getShowWarningMessageCalls()[0]).toBe("Found duplicate 'taskIds'. This field must be unique. Expect strange behaviour. If you are trying to share a remembered value between tasks, please use 'rememberAs'. Duplicate taskIds: inputTest");
+});
+
 test("commandArgs", async () => {
     const testDataPath = path.join(__dirname, "../test/testData/commandArgs");
     const filePath = `${testDataPath}/.vscode/tasks.json`;
