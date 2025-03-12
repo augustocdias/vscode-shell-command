@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased] xxxx-xx-xx
+## [1.17.0] 2025-03-12
 
 - Make input history persistent (#140)
 - Enforce unique taskId (#131)
