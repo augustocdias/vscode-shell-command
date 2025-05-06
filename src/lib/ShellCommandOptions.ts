@@ -3,6 +3,7 @@ export interface ShellCommandOptions
     cwd?: string;
     command: unknown;
     commandArgs?: unknown;
+    stdin?: string;
     env?: { [s: string]: string };
     useFirstResult?: boolean;
     useSingleResult?: boolean;

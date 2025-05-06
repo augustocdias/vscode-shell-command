@@ -1,24 +1,12 @@
 import * as vscode from "vscode";
 import * as child_process from "child_process";
+import * as stream from "stream";
 import { ShellCommandOptions } from "./ShellCommandOptions";
 import { VariableResolver, Input } from "./VariableResolver";
 import { ShellCommandException } from "../util/exceptions";
 import { UserInputContext } from "./UserInputContext";
 import { QuickPickItem } from "./QuickPickItem";
 import { parseBoolean } from "./options";
-
-function promisify<T extends unknown[], R>(fn: (...args: [...T, (err: Error | null, stdout: string, stderr: string) => void]) => R) {
-    return (...args: [...T]) =>
-        new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-            fn(...args, (err: Error | null, stdout: string, stderr: string) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ stdout, stderr });
-                }
-            });
-        });
-}
 
 export class CommandHandler {
     protected args: ShellCommandOptions;
@@ -28,6 +16,7 @@ export class CommandHandler {
     protected input: Input;
     protected command: string;
     protected commandArgs: string[] | undefined;
+    protected stdin: string | undefined;
     protected rememberKey: string | undefined;
     protected subprocess: typeof child_process;
 
@@ -59,6 +48,7 @@ export class CommandHandler {
 
         this.command = command;
         this.commandArgs = this.args.commandArgs as string[] | undefined;
+        this.stdin = this.args.stdin;
 
         this.input = this.resolveTaskToInput(this.args.taskId);
 
@@ -171,7 +161,7 @@ export class CommandHandler {
         return result;
     }
 
-    protected async runCommand() {
+    protected async runCommand(): Promise<{stdout: string, stderr: string}> {
         const options: child_process.ExecSyncOptionsWithStringEncoding = {
             encoding: "utf8",
             cwd: this.args.cwd,
@@ -180,16 +170,26 @@ export class CommandHandler {
             //    shell: vscode.env.shell
         };
 
-        if (this.commandArgs !== undefined) {
-            const execFile = promisify(this.subprocess.execFile);
-            return await execFile(this.command, this.commandArgs, options);
-        } else {
-            const exec = promisify<
-                [string, child_process.ExecOptionsWithStringEncoding],
-                child_process.ChildProcess
-            >(this.subprocess.exec);
-            return exec(this.command, options);
-        }
+        return new Promise((resolve, reject) => {
+            const callback = (error: Error | null, stdout: string, stderr: string) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve({ stdout, stderr });
+                }
+            };
+
+            const child = (this.commandArgs !== undefined)
+                ? this.subprocess.execFile(this.command, this.commandArgs, options, callback)
+                : this.subprocess.exec(this.command, options, callback);
+
+            if ((this.stdin !== undefined) && (child.stdin !== null)) {
+                const stdinStream = new stream.Readable();
+                stdinStream.push(this.stdin);
+                stdinStream.push(null);
+                stdinStream.pipe(child.stdin);
+            }
+        });
     }
 
     protected parseResult(commandOutput: { stdout: string, stderr: string }):
@@ -456,6 +456,7 @@ export class CommandHandler {
             // and command args. It can happen that we see the same input twice
             // because of workspaceFolders. We cannot detect this.
             return input.args.command === other.args.command &&
+                input.args.stdin === other.args.stdin &&
                 CommandHandler.compareCommandArgs(input.args.commandArgs,
                                                    other.args.commandArgs);
         }

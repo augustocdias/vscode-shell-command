@@ -11,6 +11,7 @@ export type Input = {
         taskId: string;
         command: string | string[];
         commandArgs: string[] | undefined;
+        stdin: string | undefined;
         cwd: string;
         env: Record<string, string>;
     },
