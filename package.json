@@ -55,7 +55,7 @@
     "glob": "10.3.10",
     "mocha": "10.8.2",
     "typescript": "5.4.3",
-    "vitest": "1.6.1",
+    "vitest": "3.0.8",
     "vscode-test": "1.6.1"
   }
 }
