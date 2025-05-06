@@ -248,6 +248,77 @@ test("commandArgs", async () => {
     );
 });
 
+describe("stdin", () => {
+    test("command", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/stdinCommand");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(context),
+            context,
+            child_process,
+        );
+
+        const result = await handler.handle();
+
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execSpy).toHaveBeenCalledWith(
+            "python",
+            {
+                cwd: testDataPath,
+                encoding: "utf8",
+                env: undefined,
+                maxBuffer: undefined,
+            },
+            expect.anything(),
+        );
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+
+        expect(result).toBe("hello world");
+    });
+
+    test("commandArgs", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/stdincommandArgs");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(context),
+            context,
+            child_process,
+        );
+
+        const result = await handler.handle();
+
+        expect(execSpy).toHaveBeenCalledTimes(0);
+        expect(execFileSpy).toHaveBeenCalledTimes(1);
+        expect(execFileSpy).toHaveBeenCalledWith(
+            "python",
+            ["-v"],
+            {
+                cwd: testDataPath,
+                encoding: "utf8",
+                env: undefined,
+                maxBuffer: undefined,
+            },
+            expect.anything(),
+        );
+
+        expect(result).toBe("hello world");
+    });
+});
+
 test("stdio", async () => {
     const testDataPath = path.join(__dirname, "../test/testData/stdio");
 
