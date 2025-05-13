@@ -97,6 +97,7 @@ VSCode renders it like this:
 * `command`: the system command to be executed (must be in PATH). If given as an array, the elements are joined by spaces.
 * `commandArgs`: if provided, `command` is interpreted as the binary to run and `commandArgs` are the arguments. This is useful if the binary you want to run has spaces (like `C:\Program Files\*`). This translates to `child_process.execFileSync(command, commandArgs)`.
 * `stdin`: if provided, this string is sent to the standard input of the command
+* `stdinResolveVars`: whether to perform variable substitution (see below) for `stdin` (default true).
 * `cwd`: the directory from within it will be executed
 * `env`: key-value pairs to use as environment variables (it won't append the variables to the current existing ones. It will replace instead)
 * `useFirstResult`: skip 'Quick Pick' dialog and use first result returned from the command

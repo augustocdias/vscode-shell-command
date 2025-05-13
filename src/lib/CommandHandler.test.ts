@@ -453,6 +453,7 @@ describe("Argument parsing", () => {
                 multiselectSeparator: " ",
                 stdio: "stdout",
                 extraTestThing: 42,
+                stdinResolveVars: true,
             });
     });
 

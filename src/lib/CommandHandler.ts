@@ -68,13 +68,14 @@ export class CommandHandler {
             allowCustomValues: parseBoolean(args.allowCustomValues, false),
             warnOnStderr: parseBoolean(args.warnOnStderr, true),
             multiselect: parseBoolean(args.multiselect, false),
+            stdinResolveVars: parseBoolean(args.multiselect, true),
             multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
             ...args,
         } as ShellCommandOptions;
     }
 
-    protected async resolveArgs() {
+    protected async resolveVariables() {
         const resolver = new VariableResolver(
             this.input,
             this.userInputContext,
@@ -88,6 +89,17 @@ export class CommandHandler {
             );
         } else {
             this.command = command;
+        }
+
+        if (this.stdin !== undefined && this.args.stdinResolveVars === true) {
+            const resolvedStdin = await resolver.resolve(this.stdin);
+            if (resolvedStdin === undefined) {
+                throw new ShellCommandException(
+                    "Your stdin is badly formatted and variables could not be resolved. Set stdinResolveVars=false to prevent stdin vars resolving",
+                );
+            } else {
+                this.stdin = resolvedStdin;
+            }
         }
 
         if (this.commandArgs !== undefined) {
@@ -125,7 +137,7 @@ export class CommandHandler {
     // Get the result, either by showing a dropdown or taking the first / only
     // option
     async getResult() {
-        await this.resolveArgs();
+        await this.resolveVariables();
 
         const result = await this.runCommand();
         const nonEmptyInput = this.parseResult(result);

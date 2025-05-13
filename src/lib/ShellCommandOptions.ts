@@ -4,6 +4,7 @@ export interface ShellCommandOptions
     command: unknown;
     commandArgs?: unknown;
     stdin?: string;
+    stdinResolveVars?: boolean;
     env?: { [s: string]: string };
     useFirstResult?: boolean;
     useSingleResult?: boolean;
