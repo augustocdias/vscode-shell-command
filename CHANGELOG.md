@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.18.0] 2025-05-13
+
+- Support stdinResolveVars (#145)
+
 ## [1.18.0] 2025-05-06
 
 - Support stdin (#145)
