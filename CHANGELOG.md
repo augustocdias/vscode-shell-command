@@ -1,6 +1,10 @@
 # Change Log
 
-## [1.18.0] 2025-05-13
+## [1.18.2] 2025-05-15
+
+- Fix two bugs with resolveArgs (stdinResolveVars mixed up with multiselect, spread overwriting parseBoolean)
+
+## [1.18.1] 2025-05-13
 
 - Support stdinResolveVars (#145)
 

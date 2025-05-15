@@ -62,16 +62,16 @@ export class CommandHandler {
 
     static resolveArgs(args: { [key: string]: unknown }): ShellCommandOptions {
         return {
+            ...args,
             useFirstResult: parseBoolean(args.useFirstResult, false),
             useSingleResult: parseBoolean(args.useSingleResult, false),
             rememberPrevious: parseBoolean(args.rememberPrevious, false),
             allowCustomValues: parseBoolean(args.allowCustomValues, false),
             warnOnStderr: parseBoolean(args.warnOnStderr, true),
             multiselect: parseBoolean(args.multiselect, false),
-            stdinResolveVars: parseBoolean(args.multiselect, true),
+            stdinResolveVars: parseBoolean(args.stdinResolveVars, true),
             multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
-            ...args,
         } as ShellCommandOptions;
     }
 

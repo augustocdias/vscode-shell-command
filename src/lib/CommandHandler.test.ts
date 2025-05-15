@@ -442,19 +442,21 @@ describe("Errors", async () => {
 
 describe("Argument parsing", () => {
     test("Test defaults and that all boolean properties use parseBoolean", () => {
-        expect(CommandHandler.resolveArgs({ extraTestThing: 42 }))
-            .toStrictEqual({
-                allowCustomValues: false,
-                rememberPrevious: false,
-                useFirstResult: false,
-                useSingleResult: false,
-                multiselect: false,
-                warnOnStderr: true,
-                multiselectSeparator: " ",
-                stdio: "stdout",
-                extraTestThing: 42,
-                stdinResolveVars: true,
-            });
+        expect(CommandHandler.resolveArgs({
+            extraTestThing: 42,
+            allowCustomValues: "false",
+        })).toStrictEqual({
+            allowCustomValues: false,
+            rememberPrevious: false,
+            useFirstResult: false,
+            useSingleResult: false,
+            multiselect: false,
+            warnOnStderr: true,
+            multiselectSeparator: " ",
+            stdio: "stdout",
+            extraTestThing: 42,
+            stdinResolveVars: true,
+        });
     });
 
     test("parseBoolean", () => {
