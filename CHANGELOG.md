@@ -1,6 +1,11 @@
 # Change Log
 
-## [1.18.0] 2025-05-13
+## [1.18.2] 2025-05-15
+
+- Fix task arguments handling to prevent incorrect values
+- Fix `stdinResolveVars` using wrong task argument
+
+## [1.18.1] 2025-05-13
 
 - Support stdinResolveVars (#145)
 
