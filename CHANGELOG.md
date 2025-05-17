@@ -2,7 +2,8 @@
 
 ## [1.18.2] 2025-05-15
 
-- Fix two bugs with resolveArgs (stdinResolveVars mixed up with multiselect, spread overwriting parseBoolean)
+- Fix task arguments handling to prevent incorrect values
+- Fix `stdinResolveVars` using wrong task argument
 
 ## [1.18.1] 2025-05-13
 
