@@ -479,8 +479,12 @@ export class CommandHandler {
                 duplicateTaskIds.add(input.args.taskId);
             }
 
-            if (input.args.command === this.command &&
-                input?.args?.taskId === taskId &&
+            if (taskId) {
+                if (input?.args?.taskId === taskId) {
+                    result = input;
+                }
+            }
+            else if (input.args.command === this.command &&
                 CommandHandler.compareCommandArgs(this.commandArgs,
                                                   input?.args?.commandArgs)) {
                   result = input;
