@@ -157,37 +157,70 @@ describe("Multiple workspaces", async () => {
     }
 });
 
-// Related to issue #79
-test("Command variable interop", async () => {
-    const testDataPath = path.join(__dirname, "../test/testData/commandvariable");
+describe("Command variable interop", () => {
+    test("Issue 79", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/commandvariable");
 
-    const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
-    const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
 
-    mockVscode.setMockData(mockData);
-    const input = tasksJson.inputs[0].args.command.bazelTargets.args;
-    const context = mockExtensionContext as unknown as vscode.ExtensionContext;
-    const handler = new CommandHandler(
-        input,
-        new UserInputContext(context),
-        context,
-        child_process,
-    );
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args.command.bazelTargets.args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(context),
+            context,
+            child_process,
+        );
 
-    await handler.handle();
+        await handler.handle();
 
-    expect(execFileSpy).toHaveBeenCalledTimes(0);
-    expect(execSpy).toHaveBeenCalledTimes(1);
-    expect(execSpy).toHaveBeenCalledWith(
-        "echo 'ItWorked'",
-        {
-            cwd: testDataPath,
-            encoding: "utf8",
-            env: undefined,
-            maxBuffer: undefined,
-        },
-        expect.anything(),
-    );
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execSpy).toHaveBeenCalledWith(
+            "echo 'ItWorked'",
+            {
+                cwd: testDataPath,
+                encoding: "utf8",
+                env: undefined,
+                maxBuffer: undefined,
+            },
+            expect.anything(),
+        );
+    });
+
+    test("Issue 131", async () => {
+        const testDataPath = path.join(__dirname, "../test/testData/commandvariable2");
+
+        const tasksJson = await import(path.join(testDataPath, ".vscode/tasks.json"));
+        const mockData = (await import(path.join(testDataPath, "mockData.ts"))).default;
+
+        mockVscode.setMockData(mockData);
+        const input = tasksJson.inputs[0].args.command.getOptionString.args;
+        const context = mockExtensionContext as unknown as vscode.ExtensionContext;
+        const handler = new CommandHandler(
+            input,
+            new UserInputContext(context),
+            context,
+            child_process,
+        );
+
+        await handler.handle();
+
+        expect(execFileSpy).toHaveBeenCalledTimes(0);
+        expect(execSpy).toHaveBeenCalledTimes(1);
+        expect(execSpy).toHaveBeenCalledWith(
+            "echo 'ItWorked'",
+            {
+                cwd: testDataPath,
+                encoding: "utf8",
+                env: undefined,
+                maxBuffer: undefined,
+            },
+            expect.anything(),
+        );
+    });
 });
 
 test("It should detect duplicate taskIds", async () => {

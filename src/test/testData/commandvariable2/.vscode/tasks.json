@@ -1,0 +1,55 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Get Option String",
+      "type": "shell",
+      "command": "echo \"The option string is '${input:getOptionString}' and the selection option is '${input:selectedOption}'\"",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "getOptionString",
+      "type": "command",
+      "command": "extension.commandvariable.transform",
+      "args": {
+        "key": "optionString",
+        "text": "${command:getOptionString}",
+        "command": {
+          "getOptionString": {
+            "command": "shellCommand.execute",
+            "variableSubstArgs": true,
+            "args": {
+              "command": "echo 'ItWorked'",
+              "useSingleResult": true,
+              "taskId": "test task id"
+            },
+            "pickStringRemember": {
+              "pickAnOption": {
+                "key": "selectedOption",
+                "description": "Pick an option",
+                "options": [
+                  { "label": "Previous option:",
+                    "value": "${remember:selectedOption}",
+                    "description": "${remember:selectedOption}"
+                  },
+                  "Option A",
+                  "Option B",
+                  "Option C",
+                  "Option D"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "selectedOption",
+      "type": "command",
+      "command": "extension.commandvariable.remember",
+      "args": { "key": "selectedOption" }
+    }
+  ]
+}
