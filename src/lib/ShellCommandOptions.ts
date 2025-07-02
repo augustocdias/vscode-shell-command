@@ -12,6 +12,7 @@ export interface ShellCommandOptions
     allowCustomValues?: boolean;
     multiselect?: boolean;
     warnOnStderr?: boolean;
+    filterEmptyResults?: boolean;
     multiselectSeparator?: string;
     fieldSeparator?: string;
     description?: string;

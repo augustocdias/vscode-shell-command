@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.19.0] 2025-07-02
+
+- Allow not filtering empty results (#155)
+
 ## [1.18.3] 2025-05-28
 
 - Extracted the `taskId` criteria while searching the input. (#131)
