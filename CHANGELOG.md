@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.19.1] 2025-07-02
+
+- Fix empty string perceived when dismissing the popup (#151)
+
 ## [1.19.0] 2025-07-02
 
 - Allow not filtering empty results (#155)
