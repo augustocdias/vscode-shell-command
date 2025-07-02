@@ -2,7 +2,7 @@ name: Create Release on Version Bump
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   extract:
