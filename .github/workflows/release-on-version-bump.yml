@@ -43,7 +43,7 @@ jobs:
 
       - name: Verify version matches package.json and package-lock.json
         run: |
-          changelog_version="${{ steps.extract.outputs.newest_version }}"
+          changelog_version="${{ steps.version.outputs.newest_version }}"
 
           pkg_version=$(jq -r .version package.json)
           lock_version=$(jq -r .version package-lock.json)
