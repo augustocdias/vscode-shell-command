@@ -9,17 +9,18 @@ import { ShellCommandException } from './util/exceptions';
 export function activate(this: any, context: vscode.ExtensionContext) {
     const userInputContext = new UserInputContext(context);
 
-    const handleExecute = (args: { [key: string]: unknown }) => {
+    const handleExecute = async (args: { [key: string]: unknown }) => {
         try {
             const handler = new CommandHandler(args, userInputContext, context, subprocess);
-            return handler.handle();
+            const result = await handler.handle();
+            return result;
         } catch (error) {
             const message = (error instanceof ShellCommandException)
                 ? error.message
                 : 'Error executing shell command: ' + error;
 
             console.error(error);
-            vscode.window.showErrorMessage(message);
+            throw message;
         }
     };
 

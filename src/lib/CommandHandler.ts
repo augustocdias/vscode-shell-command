@@ -285,7 +285,7 @@ export class CommandHandler {
         const defaultValues = this.getDefault();
         let disposable: vscode.Disposable;
 
-        return new Promise<string[] | undefined>((resolve) => {
+        return new Promise<string[] | undefined>((resolve, reject) => {
             const picker = vscode.window.createQuickPick();
             picker.canSelectMany = this.args.multiselect!;
             picker.matchOnDescription = true;
@@ -323,7 +323,7 @@ export class CommandHandler {
                     const result = CommandHandler.transformSelection(picker);
 
                     if (didCancelQuickPickSession) {
-                        resolve(undefined);
+                        reject(new ShellCommandException("Cancelled"));
                     } else if (this.input.id && (undefined !== result)) {
                         resolve(result);
                     } else {
