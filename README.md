@@ -107,6 +107,7 @@ VSCode renders it like this:
 * `multiselect`: If true, it's possible to select multiple values. They are joined by `multiselectSeparator`. Has no effect with `useFirstResult`.
 * `multiselectSeparator`: The string with which to join multiple options when `multiselect` is true (default `" "`). Has no effect without `multiselect`.
 * `warnOnStderr`: If true, a warning message is shown if the command outputs anything on stderr (default: true). Has no effect if `stdio` is not `stdout`.
+* `filterEmptyResults`: If true, empty lines output on `stdio` are filtered out (default: true).
 * `taskId`: Unique id to use for storing the last-used value.
 * `rememberAs`: Specify the `taskId` of another input to share history with that input.
 * `fieldSeparator`: the string that separates `value`, `label`, `description` and `detail` fields

@@ -70,6 +70,7 @@ export class CommandHandler {
             warnOnStderr: parseBoolean(args.warnOnStderr, true),
             multiselect: parseBoolean(args.multiselect, false),
             stdinResolveVars: parseBoolean(args.stdinResolveVars, true),
+            filterEmptyResults: parseBoolean(args.filterEmptyResults, true),
             multiselectSeparator: args.multiselectSeparator ?? " ",
             stdio: ["stdout", "stderr", "both"].includes(args.stdio as string) ? args.stdio : "stdout",
         } as ShellCommandOptions;
@@ -206,8 +207,8 @@ export class CommandHandler {
 
     protected parseResult(commandOutput: { stdout: string, stderr: string }):
         QuickPickItem[] {
-        const stdout = commandOutput.stdout.trim();
-        const stderr = commandOutput.stderr.trim();
+        const stdout = commandOutput.stdout.replace(/\n$/, "");
+        const stderr = commandOutput.stderr.replace(/\n$/, "");
         let items: string[] = [];
 
         if (("stdout" == this.args.stdio) || ("both" == this.args.stdio)) {
@@ -218,10 +219,12 @@ export class CommandHandler {
             items.push(...stderr.split(this.EOL));
         }
 
-        items = items.filter(item => item !== "");
+        if (this.args.filterEmptyResults) {
+            items = items.filter(item => item !== "");
+        }
 
         if ((items.length == 0) && (undefined === this.args.defaultOptions)) {
-            let msg = `The command for input '${this.input.id}' returned empty result.`;
+            let msg = `The command for input '${this.input.id}' didn't output any results.`;
 
             if (stderr) {
                 msg += ` stderr: '${stderr}'`;
@@ -246,8 +249,7 @@ export class CommandHandler {
                     description: values[2],
                     detail: values[3],
                 };
-            })
-            .filter((item: QuickPickItem) => item.label && item.label.trim().length > 0);
+            });
     }
 
     protected getDefault() {

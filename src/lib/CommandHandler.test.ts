@@ -448,8 +448,8 @@ describe("Errors", async () => {
             child_process,
         );
 
-        expect(() => handler.handle()).rejects.toThrowError(
-            "The command for input 'inputTest' returned empty result.");
+        await expect(() => handler.handle()).rejects.toThrowError(
+            "The command for input 'inputTest' didn't output any results.");
     });
 
     test("It should NOT trigger an error with defaultOptions", async () => {
@@ -468,8 +468,8 @@ describe("Errors", async () => {
             child_process,
         );
 
-        expect(() => handler.handle()).rejects.not.toThrowError(
-            "The command for input 'inputTest' returned empty result.");
+        await expect(() => handler.handle()).rejects.not.toThrowError(
+            "The command for input 'inputTest' didn't output any results.");
     });
 });
 
@@ -485,6 +485,7 @@ describe("Argument parsing", () => {
             useSingleResult: false,
             multiselect: false,
             warnOnStderr: true,
+            filterEmptyResults: true,
             multiselectSeparator: " ",
             stdio: "stdout",
             extraTestThing: 42,
