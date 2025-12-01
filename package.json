@@ -32,7 +32,18 @@
         "command": "shellCommand.execute",
         "title": "Execute shell command"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Tasks Shell Input",
+      "type": "object",
+      "properties": {
+        "shellCommand.ignoreFocusOut": {
+          "type": "boolean",
+          "default": "true",
+          "description": "keep input boxes open when focus moves to another part of the editor"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
