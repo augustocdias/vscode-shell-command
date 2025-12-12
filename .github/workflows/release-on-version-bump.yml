@@ -2,11 +2,6 @@ name: Create Release on Version Bump
 
 on:
   workflow_dispatch: # Manually trigger
-    inputs:
-      force:
-        description: "Force publish even if versions match"
-        required: false
-        default: "false"
   push:
     branches: [master]
 
@@ -15,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.extract.outputs.new_version }}
-      last_commit_version: ${{ steps.extract.outputs.last_commit_version }}
       prev_version: ${{ steps.extract.outputs.prev_version }}
       changelog: ${{ steps.extract.outputs.changelog }}
 
@@ -35,17 +29,15 @@ jobs:
           line3=$(echo "${versions[2]}" | cut -d: -f1 || echo "\$")
 
           new_version=$(echo "${versions[0]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
-          last_commit_version=$(echo "${versions[1]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
-          prev_version=$(git show ${{ steps.prev.outputs.sha }}:package.json | jq -r .version)
+          prev_version=$(echo "${versions[1]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
 
           changelog=$(sed -n "$line1,$((line2 - 1))p" CHANGELOG.md | tail -n +2)
 
-          echo "new_version=$new_version"                 | tee "$GITHUB_OUTPUT"
-          echo "last_commit_version=$last_commit_version" | tee "$GITHUB_OUTPUT"
-          echo "prev_version=$prev_version"               | tee "$GITHUB_OUTPUT"
-          echo "changelog<<EOF"                           | tee "$GITHUB_OUTPUT"
-          echo "$changelog"                               | tee "$GITHUB_OUTPUT"
-          echo "EOF"                                      | tee "$GITHUB_OUTPUT"
+          echo "new_version=$new_version"        | tee --append "$GITHUB_OUTPUT"
+          echo "prev_version=$prev_version"      | tee --append "$GITHUB_OUTPUT"
+          echo "changelog<<EOF"                  | tee --append "$GITHUB_OUTPUT"
+          echo "$changelog"                      | tee --append "$GITHUB_OUTPUT"
+          echo "EOF"                             | tee --append "$GITHUB_OUTPUT"
 
       - name: Verify version matches package.json and package-lock.json
         run: |
@@ -71,7 +63,6 @@ jobs:
           echo "✅ Versions match"
 
       - name: Create tag and release
-        if: ${{ steps.version.outputs.new_version != steps.version.outputs.last_commit_version || github.event.inputs.force == 'true' }}
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
