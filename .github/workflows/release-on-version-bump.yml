@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.extract.outputs.new_version }}
-      old_version: ${{ steps.extract.outputs.old_version }}
+      last_commit_version: ${{ steps.extract.outputs.last_commit_version }}
+      prev_version: ${{ steps.extract.outputs.prev_version }}
       changelog: ${{ steps.extract.outputs.changelog }}
 
     steps:
@@ -34,15 +35,17 @@ jobs:
           line3=$(echo "${versions[2]}" | cut -d: -f1 || echo "\$")
 
           new_version=$(echo "${versions[0]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
-          old_version=$(git show ${{ steps.prev.outputs.sha }}:package.json | jq -r .version)
+          last_commit_version=$(echo "${versions[1]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
+          prev_version=$(git show ${{ steps.prev.outputs.sha }}:package.json | jq -r .version)
 
           changelog=$(sed -n "$line1,$((line2 - 1))p" CHANGELOG.md | tail -n +2)
 
-          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
-          echo "old_version=$old_version" >> "$GITHUB_OUTPUT"
-          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$changelog" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version"                 | tee "$GITHUB_OUTPUT"
+          echo "last_commit_version=$last_commit_version" | tee "$GITHUB_OUTPUT"
+          echo "prev_version=$prev_version"               | tee "$GITHUB_OUTPUT"
+          echo "changelog<<EOF"                           | tee "$GITHUB_OUTPUT"
+          echo "$changelog"                               | tee "$GITHUB_OUTPUT"
+          echo "EOF"                                      | tee "$GITHUB_OUTPUT"
 
       - name: Verify version matches package.json and package-lock.json
         run: |
@@ -51,10 +54,9 @@ jobs:
           pkg_version=$(jq -r .version package.json)
           lock_version=$(jq -r .version package-lock.json)
 
-          echo "CHANGELOG.md:      $changelog_version"
-          echo "package.json:      $pkg_version"
-          echo "package-lock.json: $lock_version"
-          echo "Previous version:  $lock_version"
+          echo "CHANGELOG.md:       $changelog_version"
+          echo "package.json:       $pkg_version"
+          echo "package-lock.json:  $lock_version"
 
           if [[ "$pkg_version" != "$changelog_version" ]]; then
             echo "❌ Version mismatch: package.json ($pkg_version) != CHANGELOG.md ($changelog_version)"
@@ -69,7 +71,7 @@ jobs:
           echo "✅ Versions match"
 
       - name: Create tag and release
-        if: ${{ steps.version.outputs.new_version != steps.version.outputs.old_version || github.event.inputs.force == 'true' }}
+        if: ${{ steps.version.outputs.new_version != steps.version.outputs.last_commit_version || github.event.inputs.force == 'true' }}
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
@@ -77,6 +79,6 @@ jobs:
           body: |
               ${{ env.changelog }}
 
-              **Full Changelog**: https://github.com/augustocdias/vscode-shell-command/compare/v${{ steps.version.outputs.old_version }}...v${{ steps.version.outputs.new_version }}
+              **Full Changelog**: https://github.com/augustocdias/vscode-shell-command/compare/v${{ steps.version.outputs.prev_version }}...v${{ steps.version.outputs.new_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
