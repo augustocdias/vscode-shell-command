@@ -282,6 +282,14 @@ There are a few limitations to be aware of:
 * within an input command arg you can only reference other inputs defined with `shellCommand.execute`
 * ensure you don't have another input with the same exact `inputs.args.command` in your tasks or launch configs as this may confuse the extension
 
+## Settings
+
+Settings for the extension that apply globally (not only to one task) use VSCode's settings mechanism.
+Click `File` -> `Preferences` -> `Settings` -> `Extensions` -> `Tasks Shell Input`.
+
+Available settings are:
+- Ignore focus out in prompts
+
 ## Developing and contributing
 
 Please see [./CONTRIBUTING.md](./CONTRIBUTING.md) for documentation on developing this extension.

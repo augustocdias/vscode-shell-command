@@ -3,7 +3,7 @@
   "displayName": "Tasks Shell Input",
   "description": "Use shell commands as input for your tasks",
   "icon": "icon.png",
-  "version": "1.19.1",
+  "version": "1.20.0",
   "publisher": "augustocdias",
   "repository": {
     "url": "https://github.com/augustocdias/vscode-shell-command"
@@ -32,7 +32,16 @@
         "command": "shellCommand.execute",
         "title": "Execute shell command"
       }
-    ]
+    ],
+    "configuration": {
+      "properties": {
+        "shellInput.ignoreFocusOut": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore focus out in prompts"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -290,6 +290,9 @@ export class CommandHandler {
             picker.canSelectMany = this.args.multiselect!;
             picker.matchOnDescription = true;
             picker.matchOnDetail = true;
+            const config = vscode.workspace.getConfiguration("shellInput");
+            picker.ignoreFocusOut =
+                config.get<boolean>("ignoreFocusOut") || false;
 
             if (this.args.description !== undefined) {
                 picker.placeholder = this.args.description;

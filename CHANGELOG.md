@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.20.0] 2025-12-12
+
+- Add extension setting to ignore focus out (#162)
+
 ## [1.19.1] 2025-07-02
 
 - Fix empty string perceived when dismissing the popup (#151)
