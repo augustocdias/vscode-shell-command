@@ -1,16 +1,21 @@
 name: Create Release on Version Bump
 
 on:
+  workflow_dispatch: # Manually trigger
+    inputs:
+      force:
+        description: "Force publish even if versions match"
+        required: false
+        default: "false"
   push:
     branches: [master]
 
 jobs:
-  extract:
+  publish_release:
     runs-on: ubuntu-latest
     outputs:
-      newest_version: ${{ steps.extract.outputs.newest_version }}
+      new_version: ${{ steps.extract.outputs.new_version }}
       old_version: ${{ steps.extract.outputs.old_version }}
-      prev_newest_version: ${{ steps.extract.outputs.prev_newest_version }}
       changelog: ${{ steps.extract.outputs.changelog }}
 
     steps:
@@ -28,29 +33,28 @@ jobs:
           line2=$(echo "${versions[1]}" | cut -d: -f1)
           line3=$(echo "${versions[2]}" | cut -d: -f1 || echo "\$")
 
-          newest_version=$(echo "${versions[0]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
-          old_version=$(echo "${versions[1]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
-          prev_newest_version=$(git show ${{ steps.prev.outputs.sha }}:package.json | jq -r .version)
+          new_version=$(echo "${versions[0]}" | sed -E 's/^.*##[[:space:]]*\[?([0-9]+\.[0-9]+\.[0-9]+)\]?.*/\1/')
+          old_version=$(git show ${{ steps.prev.outputs.sha }}:package.json | jq -r .version)
 
           changelog=$(sed -n "$line1,$((line2 - 1))p" CHANGELOG.md | tail -n +2)
 
-          echo "newest_version=$newest_version" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
           echo "old_version=$old_version" >> "$GITHUB_OUTPUT"
-          echo "prev_newest_version=$prev_newest_version" >> "$GITHUB_OUTPUT"
           echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
           echo "$changelog" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Verify version matches package.json and package-lock.json
         run: |
-          changelog_version="${{ steps.version.outputs.newest_version }}"
+          changelog_version="${{ steps.version.outputs.new_version }}"
 
           pkg_version=$(jq -r .version package.json)
           lock_version=$(jq -r .version package-lock.json)
 
-          echo "CHANGELOG.md:     $changelog_version"
-          echo "package.json:     $pkg_version"
-          echo "package-lock.json:$lock_version"
+          echo "CHANGELOG.md:      $changelog_version"
+          echo "package.json:      $pkg_version"
+          echo "package-lock.json: $lock_version"
+          echo "Previous version:  $lock_version"
 
           if [[ "$pkg_version" != "$changelog_version" ]]; then
             echo "❌ Version mismatch: package.json ($pkg_version) != CHANGELOG.md ($changelog_version)"
@@ -65,14 +69,14 @@ jobs:
           echo "✅ Versions match"
 
       - name: Create tag and release
-        if: steps.version.outputs.newest_version != steps.version.outputs.prev_newest_version
+        if: ${{ steps.version.outputs.new_version != steps.version.outputs.old_version || github.event.inputs.force == 'true' }}
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.newest_version }}
-          name: Release v${{ steps.version.outputs.newest_version }}
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
           body: |
               ${{ env.changelog }}
 
-              **Full Changelog**: https://github.com/augustocdias/vscode-shell-command/compare/v${{ steps.version.outputs.old_version }}...v${{ steps.version.outputs.newest_version }}
+              **Full Changelog**: https://github.com/augustocdias/vscode-shell-command/compare/v${{ steps.version.outputs.old_version }}...v${{ steps.version.outputs.new_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
