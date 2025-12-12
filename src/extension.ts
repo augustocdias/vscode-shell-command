@@ -34,7 +34,9 @@ export function activate(this: any, context: vscode.ExtensionContext) {
     const handlePromptString = async () => {
         vscode.window.showWarningMessage(
             'shellCommand.promptString is deprecated. Please use `${prompt}`.');
-        const inputValue = await vscode.window.showInputBox();
+        const config = vscode.workspace.getConfiguration("shellInput");
+        const ignoreFocusOut = config.get<boolean>("ignoreFocusOut") || false;
+        const inputValue = await vscode.window.showInputBox({ ignoreFocusOut });
 
         return inputValue || '';
     };

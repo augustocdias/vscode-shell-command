@@ -142,10 +142,13 @@ export class VariableResolver {
         const promptId = `prompt/${taskId}_${match.index}`;
         const prevValue = this.context.workspaceState.get<string>(promptId, '');
         const initialValue = promptOptions.rememberPrevious ? prevValue : '';
+        const config = vscode.workspace.getConfiguration("shellInput");
+        const ignoreFocusOut = config.get<boolean>("ignoreFocusOut") || false;
 
         const result = (await vscode.window.showInputBox({
             value: initialValue,
             prompt: promptOptions.prompt,
+            ignoreFocusOut,
         })) ?? '';
 
         this.context.workspaceState.update(promptId, result);
