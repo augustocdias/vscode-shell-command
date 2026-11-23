@@ -55,16 +55,12 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "@types/glob": "8.1.0",
-    "@types/node": "20.11.30",
+    "@types/node": "22.20.5",
     "@types/vscode": "1.37.0",
-    "@typescript-eslint/eslint-plugin": "7.3.1",
-    "@typescript-eslint/parser": "7.3.1",
+    "@typescript-eslint/eslint-plugin": "8.74.0",
+    "@typescript-eslint/parser": "8.74.0",
     "eslint": "8.57.0",
-    "glob": "10.5.0",
-    "mocha": "12.0.1",
     "typescript": "5.4.3",
-    "vitest": "3.2.6",
-    "vscode-test": "1.6.1"
+    "vitest": "5.0.5"
   }
 }
