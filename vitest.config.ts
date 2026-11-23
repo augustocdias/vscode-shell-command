@@ -1,6 +1,6 @@
-import * as path from 'path'
+const path = require('path')
 
-export default {
+module.exports = {
   test: {
     exclude: ["node_modules", "out"],
     alias: {

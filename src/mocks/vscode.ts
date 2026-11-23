@@ -67,23 +67,22 @@ type MockData = {
 const showWarningMessageCalls: string[] = [];
 
 export namespace window {
-    export namespace activeTextEditor {
-        export namespace document {
-            // Here and below: these ARE redefined by setMockData
-            // eslint-disable-next-line prefer-const
-            export let fileName: string | undefined = undefined;
-            export namespace uri {
-                // eslint-disable-next-line prefer-const
-                export let fsPath: string | undefined = undefined;
-            }
-        }
-        export namespace selection {
-            export namespace active {
-                // eslint-disable-next-line prefer-const
-                export let line: number | undefined = undefined;
-            }
-        }
-    }
+    // The fields below ARE redefined by setMockData. They are properties of a
+    // const object rather than `export let` because Oxc (used by Vite 8) cannot
+    // parse namespaces that export mutable bindings.
+    export const activeTextEditor = {
+        document: {
+            fileName: undefined as string | undefined,
+            uri: {
+                fsPath: undefined as string | undefined,
+            },
+        },
+        selection: {
+            active: {
+                line: undefined as number | undefined,
+            },
+        },
+    };
 
     export function showWarningMessage(message: string) {
         showWarningMessageCalls.push(message);
